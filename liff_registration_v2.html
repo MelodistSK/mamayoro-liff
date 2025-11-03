@@ -316,12 +316,16 @@
                     
                     <div class="form-group">
                         <label>婚姻状況<span class="required">*</span></label>
-                        <div class="radio-group" style="flex-direction: row;">
-                            <div class="radio-option" style="flex: 1;">
-                                <input type="radio" id="maritalSingle" name="maritalStatus" value="シングル" required>
-                                <label for="maritalSingle">シングル</label>
+                        <div class="radio-group-vertical">
+                            <div class="radio-option">
+                                <input type="radio" id="maritalDivorced" name="maritalStatus" value="シングル（離婚）" required>
+                                <label for="maritalDivorced">シングル（離婚）</label>
                             </div>
-                            <div class="radio-option" style="flex: 1;">
+                            <div class="radio-option">
+                                <input type="radio" id="maritalSingle" name="maritalStatus" value="シングル（未婚）" required>
+                                <label for="maritalSingle">シングル（未婚）</label>
+                            </div>
+                            <div class="radio-option">
                                 <input type="radio" id="maritalMarried" name="maritalStatus" value="既婚" required>
                                 <label for="maritalMarried">既婚</label>
                             </div>
