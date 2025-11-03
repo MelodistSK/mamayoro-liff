@@ -18,7 +18,19 @@ export default async function handler(req, res) {
     }
     
     try {
+        // デバッグ用ログ
+        console.log('Request body:', JSON.stringify(req.body));
+        
         const { record } = req.body;
+        
+        // recordが存在しない場合のエラー
+        if (!record) {
+            console.error('No record in request body');
+            return res.status(400).json({ 
+                error: 'Missing or invalid input.',
+                details: 'No record provided'
+            });
+        }
         
         // kintone設定
         const KINTONE_DOMAIN = '0ioyx3apbzda.cybozu.com';
@@ -27,6 +39,8 @@ export default async function handler(req, res) {
         
         // kintone APIにリクエスト
         const kintoneUrl = `https://${KINTONE_DOMAIN}/k/v1/record.json?app=${KINTONE_APP_ID}`;
+        
+        console.log('Calling kintone API:', kintoneUrl);
         
         const kintoneResponse = await fetch(kintoneUrl, {
             method: 'POST',
@@ -40,8 +54,11 @@ export default async function handler(req, res) {
             })
         });
         
+        console.log('kintone response status:', kintoneResponse.status);
+        
         if (!kintoneResponse.ok) {
             const errorData = await kintoneResponse.json();
+            console.error('kintone API error:', errorData);
             throw new Error(errorData.message || 'kintone API error');
         }
         
