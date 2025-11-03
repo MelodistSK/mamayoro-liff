@@ -528,10 +528,7 @@
         // 設定情報
         // ========================================
         const CONFIG = {
-            LIFF_ID: '2008409890-bdVxpkD0',
-            KINTONE_DOMAIN: '0ioyx3apbzda.cybozu.com',
-            KINTONE_APP_ID: '801',
-            KINTONE_API_TOKEN: 'ObIT9Awe9J1UPOvksMbOZp2i0LP3fImDvlFP4gpT'
+            LIFF_ID: '2008409890-bdVxpkD0' // 本番用LIFF ID
         };
 
         // ========================================
@@ -636,20 +633,20 @@
                 activity_temperature: { value: '高' }
             };
             
-            const url = `https://${CONFIG.KINTONE_DOMAIN}/k/v1/record.json?app=${CONFIG.KINTONE_APP_ID}`;
+            // Vercel Serverless Functionを経由してkintoneに登録
+            const url = '/api/register';
             
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
-                    'X-Cybozu-API-Token': CONFIG.KINTONE_API_TOKEN,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ app: CONFIG.KINTONE_APP_ID, record: record })
+                body: JSON.stringify({ record: record })
             });
             
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || 'kintone registration failed');
+                throw new Error(errorData.error || 'Registration failed');
             }
             
             return await response.json();
