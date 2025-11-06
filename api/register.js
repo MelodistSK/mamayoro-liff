@@ -41,7 +41,10 @@ export default async function handler(req, res) {
         }
         
         const kintoneBaseUrl = `https://${KINTONE_DOMAIN}/k/v1`;
-        const queryUrl = `${kintoneBaseUrl}/records.json?app=${KINTONE_APP_ID}&query=order by $id desc limit 1`;
+        
+        // クエリ文字列を正しくURLエンコード
+        const query = encodeURIComponent('order by $id desc limit 1');
+        const queryUrl = `${kintoneBaseUrl}/records.json?app=${KINTONE_APP_ID}&query=${query}`;
         
         console.log('リクエストURL:', queryUrl);
         
