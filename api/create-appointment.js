@@ -142,86 +142,90 @@ export default async function handler(req, res) {
         console.log('- リビジョン:', createRecordData.revision);
         console.log('========================================');
         
-        // ========================================
-        // 3. Googleカレンダーに予定追加
-        // ========================================
-        console.log('ステップ3: Googleカレンダーに予定を追加中...');
-        
-        console.log('環境変数確認:');
-        console.log('- GOOGLE_CALENDAR_CREDENTIALS:', process.env.GOOGLE_CALENDAR_CREDENTIALS ? '設定済み' : '未設定');
-        console.log('- GOOGLE_CALENDAR_ID:', process.env.GOOGLE_CALENDAR_ID || '未設定');
-        
-        const credentials = JSON.parse(process.env.GOOGLE_CALENDAR_CREDENTIALS);
-        const calendarId = process.env.GOOGLE_CALENDAR_ID;
-        
-        console.log('認証情報:');
-        console.log('- project_id:', credentials.project_id);
-        console.log('- client_email:', credentials.client_email);
-        console.log('- calendar_id:', calendarId);
-        console.log('========================================');
-        
-        console.log('Google認証を初期化中...');
-        const auth = new google.auth.GoogleAuth({
-            credentials,
-            scopes: ['https://www.googleapis.com/auth/calendar'],
-        });
-        console.log('Google認証初期化成功');
-        
-        console.log('Calendar APIクライアントを作成中...');
-        const calendar = google.calendar({ version: 'v3', auth });
-        console.log('Calendar APIクライアント作成成功');
-        
-        // 日時を作成
-        const startDateTime = new Date(`${date}T${startTime}:00+09:00`);
-        const endDateTime = new Date(`${date}T${endTime}:00+09:00`);
-        
-        console.log('予定の詳細:');
-        console.log('- タイトル:', `面談: ${jobseekerName}`);
-        console.log('- 開始時刻:', startDateTime.toISOString());
-        console.log('- 終了時刻:', endDateTime.toISOString());
-        console.log('========================================');
-        
-        const event = {
-            summary: `面談: ${jobseekerName}`,
-            description: `求職者: ${jobseekerName}\nLINE表示名: ${lineDisplayName}\nLINE userID: ${userId}\nkintone面談ID: ${createRecordData.id}`,
-            start: {
-                dateTime: startDateTime.toISOString(),
-                timeZone: 'Asia/Tokyo',
-            },
-            end: {
-                dateTime: endDateTime.toISOString(),
-                timeZone: 'Asia/Tokyo',
-            },
-        };
-        
-        console.log('カレンダーに予定を追加中...');
-        console.log('リクエスト内容:', JSON.stringify(event, null, 2));
-        
-        try {
-            const calendarResponse = await calendar.events.insert({
-                calendarId: calendarId,
-                resource: event,
-            });
-            
-            console.log('Googleカレンダー予定作成成功:');
-            console.log('- イベントID:', calendarResponse.data.id);
-            console.log('- HTMLリンク:', calendarResponse.data.htmlLink);
-            console.log('========================================');
-            
-            // ========================================
-            // 成功レスポンス
-            // ========================================
-            console.log('すべての処理が完了しました');
-            console.log('========================================');
-            
-            return res.status(200).json({
-                success: true,
-                kintoneRecordId: createRecordData.id,
-                calendarEventId: calendarResponse.data.id,
-                calendarEventLink: calendarResponse.data.htmlLink,
-                jobseekerName: jobseekerName,
-                message: '予約が完了しました'
-            });
+// ========================================
+// 3. Googleカレンダーに予定追加
+// ========================================
+console.log('ステップ3: Googleカレンダーに予定を追加中...');
+
+console.log('環境変数確認:');
+console.log('- GOOGLE_CALENDAR_CREDENTIALS:', process.env.GOOGLE_CALENDAR_CREDENTIALS ? '設定済み' : '未設定');
+console.log('- GOOGLE_CALENDAR_ID:', process.env.GOOGLE_CALENDAR_ID || '未設定');
+
+const credentials = JSON.parse(process.env.GOOGLE_CALENDAR_CREDENTIALS);
+const calendarId = process.env.GOOGLE_CALENDAR_ID;
+
+console.log('認証情報:');
+console.log('- project_id:', credentials.project_id);
+console.log('- client_email:', credentials.client_email);
+console.log('- calendar_id:', calendarId);
+console.log('========================================');
+
+console.log('Google認証を初期化中...');
+const auth = new google.auth.GoogleAuth({
+    credentials,
+    scopes: ['https://www.googleapis.com/auth/calendar'],
+});
+console.log('Google認証初期化成功');
+
+console.log('Calendar APIクライアントを作成中...');
+const calendar = google.calendar({ version: 'v3', auth });
+console.log('Calendar APIクライアント作成成功');
+
+// 日時を作成
+const startDateTime = new Date(`${date}T${startTime}:00+09:00`);
+const endDateTime = new Date(`${date}T${endTime}:00+09:00`);
+
+// kintoneレコードへのリンク
+const kintoneRecordUrl = `https://${KINTONE_DOMAIN}/k/${APPOINTMENT_APP_ID}/show#record=${createRecordData.id}`;
+
+console.log('予定の詳細:');
+console.log('- タイトル:', `${jobseekerName}_#${createRecordData.id}#`);
+console.log('- 開始時刻:', startDateTime.toISOString());
+console.log('- 終了時刻:', endDateTime.toISOString());
+console.log('- kintoneレコードURL:', kintoneRecordUrl);
+console.log('========================================');
+
+const event = {
+    summary: `${jobseekerName}_#${createRecordData.id}#`,
+    description: `求職者: ${jobseekerName}\nLINE表示名: ${lineDisplayName}\nLINE userID: ${userId}\n\nkintone面談レコード:\n${kintoneRecordUrl}`,
+    start: {
+        dateTime: startDateTime.toISOString(),
+        timeZone: 'Asia/Tokyo',
+    },
+    end: {
+        dateTime: endDateTime.toISOString(),
+        timeZone: 'Asia/Tokyo',
+    },
+};
+
+console.log('カレンダーに予定を追加中...');
+console.log('リクエスト内容:', JSON.stringify(event, null, 2));
+
+try {
+    const calendarResponse = await calendar.events.insert({
+        calendarId: calendarId,
+        resource: event,
+    });
+    
+    console.log('Googleカレンダー予定作成成功:');
+    console.log('- イベントID:', calendarResponse.data.id);
+    console.log('- HTMLリンク:', calendarResponse.data.htmlLink);
+    console.log('========================================');
+    
+    // ========================================
+    // 成功レスポンス
+    // ========================================
+    console.log('すべての処理が完了しました');
+    console.log('========================================');
+    
+    return res.status(200).json({
+        success: true,
+        kintoneRecordId: createRecordData.id,
+        calendarEventId: calendarResponse.data.id,
+        calendarEventLink: calendarResponse.data.htmlLink,
+        jobseekerName: jobseekerName,
+        message: '予約が完了しました'
+    });
             
         } catch (calendarError) {
             console.error('========================================');
