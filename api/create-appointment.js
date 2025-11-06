@@ -176,18 +176,20 @@ const startDateTime = new Date(`${date}T${startTime}:00+09:00`);
 const endDateTime = new Date(`${date}T${endTime}:00+09:00`);
 
 // kintoneレコードへのリンク
-const kintoneRecordUrl = `https://${KINTONE_DOMAIN}/k/${APPOINTMENT_APP_ID}/show#record=${createRecordData.id}`;
+const appointmentRecordUrl = `https://${KINTONE_DOMAIN}/k/${APPOINTMENT_APP_ID}/show#record=${createRecordData.id}`;
+const jobseekerRecordUrl = `https://${KINTONE_DOMAIN}/k/${JOBSEEKER_APP_ID}/show#record=${jobseeker.$id.value}`;
 
 console.log('予定の詳細:');
 console.log('- タイトル:', `${jobseekerName}_#${createRecordData.id}#`);
 console.log('- 開始時刻:', startDateTime.toISOString());
 console.log('- 終了時刻:', endDateTime.toISOString());
-console.log('- kintoneレコードURL:', kintoneRecordUrl);
+console.log('- 面談管理レコードURL:', appointmentRecordUrl);
+console.log('- 求職者レコードURL:', jobseekerRecordUrl);
 console.log('========================================');
 
 const event = {
     summary: `${jobseekerName}_#${createRecordData.id}#`,
-    description: `求職者: ${jobseekerName}\nLINE表示名: ${lineDisplayName}\nLINE userID: ${userId}\n\nkintone面談レコード:\n${kintoneRecordUrl}`,
+    description: `求職者: ${jobseekerName}\nLINE表示名: ${lineDisplayName}\nLINE userID: ${userId}\n\n📋 kintone面談レコード:\n${appointmentRecordUrl}\n\n👤 kintone求職者レコード:\n${jobseekerRecordUrl}`,
     start: {
         dateTime: startDateTime.toISOString(),
         timeZone: 'Asia/Tokyo',
