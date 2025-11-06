@@ -1,81 +1,117 @@
-// Vercel Serverless Function - kintone Registration Proxy
-// This function acts as a proxy to avoid CORS issues
+/**
+ * Vercel Serverless Function - kintone求職者登録API
+ * 
+ * 機能:
+ * - 求職者IDを自動生成してkintoneに登録
+ * - フォーマット: JS-0000001（7桁ゼロ埋め）
+ */
 
 export default async function handler(req, res) {
-    // CORSヘッダーを設定
+    // CORSヘッダー設定
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     
-    // OPTIONSリクエスト（プリフライト）の処理
+    // OPTIONSリクエスト対応
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
     }
     
-    // POSTリクエストのみ受け付ける
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
     
     try {
-        // デバッグ用ログ
-        console.log('Request body:', JSON.stringify(req.body));
-        
         const { record } = req.body;
         
-        // recordが存在しない場合のエラー
-        if (!record) {
-            console.error('No record in request body');
-            return res.status(400).json({ 
-                error: 'Missing or invalid input.',
-                details: 'No record provided'
-            });
+        // kintone認証情報
+        const KINTONE_DOMAIN = process.env.KINTONE_DOMAIN; // 例: your-subdomain.cybozu.com
+        const KINTONE_APP_ID = process.env.KINTONE_APP_ID; // アプリID
+        const KINTONE_API_TOKEN = process.env.KINTONE_API_TOKEN; // APIトークン
+        
+        if (!KINTONE_DOMAIN || !KINTONE_APP_ID || !KINTONE_API_TOKEN) {
+            throw new Error('環境変数が設定されていません');
         }
         
-        // kintone設定
-        const KINTONE_DOMAIN = '0ioyx3apbzda.cybozu.com';
-        const KINTONE_APP_ID = '801';
-        const KINTONE_API_TOKEN = 'ObIT9Awe9J1UPOvksMbOZp2i0LP3fImDvlFP4gpT';
+        const kintoneBaseUrl = `https://${KINTONE_DOMAIN}/k/v1`;
         
-        // kintone APIにリクエスト
-        const kintoneUrl = `https://${KINTONE_DOMAIN}/k/v1/record.json?app=${KINTONE_APP_ID}`;
+        // ========================================
+        // 1. 最新のレコード番号を取得
+        // ========================================
+        const getRecordsResponse = await fetch(
+            `${kintoneBaseUrl}/records.json?app=${KINTONE_APP_ID}&query=order by $id desc limit 1`,
+            {
+                method: 'GET',
+                headers: {
+                    'X-Cybozu-API-Token': KINTONE_API_TOKEN,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
         
-        console.log('Calling kintone API:', kintoneUrl);
-        
-        const kintoneResponse = await fetch(kintoneUrl, {
-            method: 'POST',
-            headers: {
-                'X-Cybozu-API-Token': KINTONE_API_TOKEN,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                app: KINTONE_APP_ID,
-                record: record
-            })
-        });
-        
-        console.log('kintone response status:', kintoneResponse.status);
-        
-        if (!kintoneResponse.ok) {
-            const errorData = await kintoneResponse.json();
-            console.error('kintone API error:', errorData);
-            throw new Error(errorData.message || 'kintone API error');
+        if (!getRecordsResponse.ok) {
+            const errorText = await getRecordsResponse.text();
+            throw new Error(`最新レコード取得失敗: ${errorText}`);
         }
         
-        const result = await kintoneResponse.json();
+        const getRecordsData = await getRecordsResponse.json();
         
-        // 成功レスポンスを返す
+        // ========================================
+        // 2. 求職者IDを生成
+        // ========================================
+        let nextRecordNumber = 1;
+        
+        if (getRecordsData.records && getRecordsData.records.length > 0) {
+            const latestRecord = getRecordsData.records[0];
+            const latestRecordId = parseInt(latestRecord.$id.value);
+            nextRecordNumber = latestRecordId + 1;
+        }
+        
+        const jobseekerId = 'JS-' + String(nextRecordNumber).padStart(7, '0');
+        
+        console.log('生成された求職者ID:', jobseekerId);
+        
+        // ========================================
+        // 3. 求職者IDを追加してレコード作成
+        // ========================================
+        const recordWithId = {
+            ...record,
+            jobseeker_id: { value: jobseekerId }
+        };
+        
+        const createRecordResponse = await fetch(
+            `${kintoneBaseUrl}/record.json`,
+            {
+                method: 'POST',
+                headers: {
+                    'X-Cybozu-API-Token': KINTONE_API_TOKEN,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    app: KINTONE_APP_ID,
+                    record: recordWithId
+                })
+            }
+        );
+        
+        if (!createRecordResponse.ok) {
+            const errorText = await createRecordResponse.text();
+            throw new Error(`レコード作成失敗: ${errorText}`);
+        }
+        
+        const createRecordData = await createRecordResponse.json();
+        
         return res.status(200).json({
             success: true,
-            recordId: result.id,
-            revision: result.revision
+            id: createRecordData.id,
+            jobseeker_id: jobseekerId,
+            message: '登録が完了しました'
         });
         
     } catch (error) {
         console.error('Registration error:', error);
         return res.status(500).json({
-            success: false,
-            error: error.message || 'Internal server error'
+            error: error.message || '登録中にエラーが発生しました'
         });
     }
 }
