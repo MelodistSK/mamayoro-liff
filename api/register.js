@@ -55,7 +55,6 @@ export default async function handler(req, res) {
             method: 'GET',
             headers: {
                 'X-Cybozu-API-Token': KINTONE_API_TOKEN,
-                'Content-Type': 'application/json'
             }
         });
         
