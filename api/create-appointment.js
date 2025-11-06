@@ -87,7 +87,7 @@ export default async function handler(req, res) {
             date: { value: date },
             start: { value: startTime },
             end: { value: endTime },
-            lookup_name: { value: jobseekerName } // ルックアップフィールドに求職者名を設定
+            lookup_line_user_id: { value: userId } // ルックアップのキーフィールド
         };
         
         const createRecordResponse = await fetch(`${kintoneBaseUrl}/record.json`, {
