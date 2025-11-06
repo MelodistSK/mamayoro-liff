@@ -44,14 +44,14 @@ export default async function handler(req, res) {
         const KINTONE_DOMAIN = process.env.KINTONE_DOMAIN;
         const JOBSEEKER_APP_ID = process.env.KINTONE_APP_ID; // 求職者管理アプリ(801)
         const APPOINTMENT_APP_ID = '805'; // 面談管理アプリ
-        const KINTONE_API_TOKEN = process.env.KINTONE_API_TOKEN;
+        const JOBSEEKER_API_TOKEN = 'ObIT9Awe9J1UPOvksMbOZp2i0LP3fImDvlFP4gpT'; // 求職者管理アプリのAPIトークン
         const APPOINTMENT_API_TOKEN = 'nwBHy23E4z1mL13ag7jn6cNR4oLbC7mTm2I6hRLd'; // 面談管理アプリのAPIトークン
         
         console.log('環境変数確認:');
         console.log('- KINTONE_DOMAIN:', KINTONE_DOMAIN);
         console.log('- JOBSEEKER_APP_ID:', JOBSEEKER_APP_ID);
         console.log('- APPOINTMENT_APP_ID:', APPOINTMENT_APP_ID);
-        console.log('- KINTONE_API_TOKEN:', KINTONE_API_TOKEN ? '設定済み' : '未設定');
+        console.log('- JOBSEEKER_API_TOKEN:', JOBSEEKER_API_TOKEN ? '設定済み' : '未設定');
         console.log('- APPOINTMENT_API_TOKEN:', APPOINTMENT_API_TOKEN ? '設定済み' : '未設定');
         console.log('========================================');
         
@@ -70,7 +70,7 @@ export default async function handler(req, res) {
         const searchResponse = await fetch(searchUrl, {
             method: 'GET',
             headers: {
-                'X-Cybozu-API-Token': KINTONE_API_TOKEN
+                'X-Cybozu-API-Token': JOBSEEKER_API_TOKEN
             }
         });
         
@@ -91,9 +91,11 @@ export default async function handler(req, res) {
         
         const jobseeker = searchData.records[0];
         const jobseekerName = jobseeker.name.value;
+        const lineDisplayName = jobseeker.line_display_name?.value || jobseekerName;
         
         console.log('求職者を特定:');
         console.log('- 名前:', jobseekerName);
+        console.log('- LINE表示名:', lineDisplayName);
         console.log('- レコードID:', jobseeker.$id.value);
         console.log('========================================');
         
@@ -113,10 +115,11 @@ export default async function handler(req, res) {
         
         console.log('作成するレコード:', JSON.stringify(appointmentRecord, null, 2));
         
+        // 重要: ルックアップを使う場合、両方のアプリのAPIトークンが必要
         const createRecordResponse = await fetch(`${kintoneBaseUrl}/record.json`, {
             method: 'POST',
             headers: {
-                'X-Cybozu-API-Token': APPOINTMENT_API_TOKEN,
+                'X-Cybozu-API-Token': `${APPOINTMENT_API_TOKEN},${JOBSEEKER_API_TOKEN}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
@@ -180,7 +183,7 @@ export default async function handler(req, res) {
         
         const event = {
             summary: `面談: ${jobseekerName}`,
-            description: `求職者: ${jobseekerName}\nLINE userID: ${userId}\nkintone面談ID: ${createRecordData.id}`,
+            description: `求職者: ${jobseekerName}\nLINE表示名: ${lineDisplayName}\nLINE userID: ${userId}\nkintone面談ID: ${createRecordData.id}`,
             start: {
                 dateTime: startDateTime.toISOString(),
                 timeZone: 'Asia/Tokyo',
