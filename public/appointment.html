@@ -354,101 +354,100 @@
             }
         });
 
-        // ========================================
-        // カレンダー初期化
-        // ========================================
-        async function initializeCalendar() {
-            const container = document.getElementById('calendarContainer');
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+// ========================================
+// カレンダー初期化
+// ========================================
+async function initializeCalendar() {
+    const container = document.getElementById('calendarContainer');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // 2週間分の日付を生成
+    const dates = [];
+    for (let i = 0; i < 14; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
+        dates.push(date);
+    }
+    
+    // 月ごとにグループ化
+    const monthGroups = {};
+    dates.forEach(date => {
+        const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+        if (!monthGroups[monthKey]) {
+            monthGroups[monthKey] = [];
+        }
+        monthGroups[monthKey].push(date);
+    });
+    
+    // 各月のカレンダーを作成
+    Object.entries(monthGroups).forEach(([monthKey, monthDates]) => {
+        const firstDate = monthDates[0];
+        const monthDiv = document.createElement('div');
+        monthDiv.style.marginBottom = '30px';
+        
+        // 月のヘッダー
+        const header = document.createElement('div');
+        header.className = 'month-header';
+        header.textContent = `${firstDate.getFullYear()}年${firstDate.getMonth() + 1}月`;
+        monthDiv.appendChild(header);
+        
+        // 曜日ヘッダー
+        const weekdayHeader = document.createElement('div');
+        weekdayHeader.className = 'weekday-header';
+        ['日', '月', '火', '水', '木', '金', '土'].forEach(day => {
+            const dayDiv = document.createElement('div');
+            dayDiv.textContent = day;
+            weekdayHeader.appendChild(dayDiv);
+        });
+        monthDiv.appendChild(weekdayHeader);
+        
+        // 日付グリッド
+        const gridDiv = document.createElement('div');
+        gridDiv.className = 'date-selector';
+        
+        // ⭐ 修正: 表示する最初の日付の曜日に合わせて空白を追加
+        const startDay = firstDate.getDay(); // この月で最初に表示する日の曜日
+        
+        for (let i = 0; i < startDay; i++) {
+            const emptyDiv = document.createElement('div');
+            gridDiv.appendChild(emptyDiv);
+        }
+        
+        // 日付を追加
+        monthDates.forEach(date => {
+            const dateDiv = document.createElement('div');
+            dateDiv.className = 'date-option';
             
-            // 2週間分の日付を生成
-            const dates = [];
-            for (let i = 0; i < 14; i++) {
-                const date = new Date(today);
-                date.setDate(today.getDate() + i);
-                dates.push(date);
+            const dayOfWeek = date.getDay();
+            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+            
+            if (isWeekend) {
+                dateDiv.classList.add('disabled');
             }
             
-            // 月ごとにグループ化
-            const monthGroups = {};
-            dates.forEach(date => {
-                const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
-                if (!monthGroups[monthKey]) {
-                    monthGroups[monthKey] = [];
-                }
-                monthGroups[monthKey].push(date);
-            });
+            const daySpan = document.createElement('div');
+            daySpan.className = 'date-day';
+            daySpan.textContent = ['日', '月', '火', '水', '木', '金', '土'][dayOfWeek];
             
-            // 各月のカレンダーを作成
-            Object.entries(monthGroups).forEach(([monthKey, monthDates]) => {
-                const firstDate = monthDates[0];
-                const monthDiv = document.createElement('div');
-                monthDiv.style.marginBottom = '30px';
-                
-                // 月のヘッダー
-                const header = document.createElement('div');
-                header.className = 'month-header';
-                header.textContent = `${firstDate.getFullYear()}年${firstDate.getMonth() + 1}月`;
-                monthDiv.appendChild(header);
-                
-                // 曜日ヘッダー
-                const weekdayHeader = document.createElement('div');
-                weekdayHeader.className = 'weekday-header';
-                ['日', '月', '火', '水', '木', '金', '土'].forEach(day => {
-                    const dayDiv = document.createElement('div');
-                    dayDiv.textContent = day;
-                    weekdayHeader.appendChild(dayDiv);
-                });
-                monthDiv.appendChild(weekdayHeader);
-                
-                // 日付グリッド
-                const gridDiv = document.createElement('div');
-                gridDiv.className = 'date-selector';
-                
-                // 月の最初の日の曜日に合わせて空白を追加
-                const firstDayOfMonth = new Date(firstDate.getFullYear(), firstDate.getMonth(), 1);
-                const startDay = firstDayOfMonth.getDay();
-                
-                for (let i = 0; i < startDay; i++) {
-                    const emptyDiv = document.createElement('div');
-                    gridDiv.appendChild(emptyDiv);
-                }
-                
-                // 日付を追加
-                monthDates.forEach(date => {
-                    const dateDiv = document.createElement('div');
-                    dateDiv.className = 'date-option';
-                    
-                    const dayOfWeek = date.getDay();
-                    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-                    
-                    if (isWeekend) {
-                        dateDiv.classList.add('disabled');
-                    }
-                    
-                    const daySpan = document.createElement('div');
-                    daySpan.className = 'date-day';
-                    daySpan.textContent = ['日', '月', '火', '水', '木', '金', '土'][dayOfWeek];
-                    
-                    const numberSpan = document.createElement('div');
-                    numberSpan.className = 'date-number';
-                    numberSpan.textContent = date.getDate();
-                    
-                    dateDiv.appendChild(daySpan);
-                    dateDiv.appendChild(numberSpan);
-                    
-                    if (!isWeekend) {
-                        dateDiv.addEventListener('click', () => selectDate(date, dateDiv));
-                    }
-                    
-                    gridDiv.appendChild(dateDiv);
-                });
-                
-                monthDiv.appendChild(gridDiv);
-                container.appendChild(monthDiv);
-            });
-        }
+            const numberSpan = document.createElement('div');
+            numberSpan.className = 'date-number';
+            numberSpan.textContent = date.getDate();
+            
+            dateDiv.appendChild(daySpan);
+            dateDiv.appendChild(numberSpan);
+            
+            if (!isWeekend) {
+                dateDiv.addEventListener('click', () => selectDate(date, dateDiv));
+            }
+            
+            gridDiv.appendChild(dateDiv);
+        });
+        
+        monthDiv.appendChild(gridDiv);
+        container.appendChild(monthDiv);
+    });
+}
 
         // ========================================
         // 日付選択
