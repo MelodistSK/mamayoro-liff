@@ -323,11 +323,11 @@
                         <label>婚姻状況<span class="required">*</span></label>
                         <div class="radio-group-vertical">
                             <div class="radio-option">
-                                <input type="radio" id="maritalDivorced" name="maritalStatus" value="シングル（離婚）" required>
+                                <input type="radio" id="maritalDivorced" name="maritalStatus" value="シングル(離婚)" required>
                                 <label for="maritalDivorced">シングル（離婚）</label>
                             </div>
                             <div class="radio-option">
-                                <input type="radio" id="maritalSingle" name="maritalStatus" value="シングル（未婚）" required>
+                                <input type="radio" id="maritalSingle" name="maritalStatus" value="シングル(未婚)" required>
                                 <label for="maritalSingle">シングル（未婚）</label>
                             </div>
                             <div class="radio-option">
@@ -595,10 +595,19 @@
                 // LINEアプリ内 → ウィンドウを閉じる
                 liff.closeWindow();
             } else {
-                // 外部ブラウザ → メッセージを表示
-                alert('面談予約は後からでも可能です。\nLINEのトーク画面からいつでも予約できます。');
-                // オプション: LINEアプリを開く
-                window.open('https://line.me/R/', '_blank');
+                // 外部ブラウザ → 強制的にタブを閉じる試み
+                window.close();
+                
+                // window.close()が失敗した場合の代替処理
+                setTimeout(() => {
+                    // 履歴があれば前のページに戻る
+                    if (window.history.length > 1) {
+                        window.history.back();
+                    } else {
+                        // 履歴がない場合はLINEアプリを開く
+                        window.location.href = 'https://line.me/R/';
+                    }
+                }, 100);
             }
         }
 
