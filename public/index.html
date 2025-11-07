@@ -231,6 +231,7 @@
             border-radius: 8px;
             margin-bottom: 20px;
             display: none;
+            white-space: pre-line;
         }
         
         .error-message.active {
@@ -595,19 +596,9 @@
                 // LINEアプリ内 → ウィンドウを閉じる
                 liff.closeWindow();
             } else {
-                // 外部ブラウザ → 強制的にタブを閉じる試み
+                // 外部ブラウザ → window.close()を試みる
+                // 閉じられない場合は何もしない
                 window.close();
-                
-                // window.close()が失敗した場合の代替処理
-                setTimeout(() => {
-                    // 履歴があれば前のページに戻る
-                    if (window.history.length > 1) {
-                        window.history.back();
-                    } else {
-                        // 履歴がない場合はLINEアプリを開く
-                        window.location.href = 'https://line.me/R/';
-                    }
-                }, 100);
             }
         }
 
@@ -616,6 +607,35 @@
         // ========================================
         document.getElementById('registrationForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            // ⭐ 追加: 必須項目のバリデーション
+            const form = e.target;
+            const requiredFields = [
+                { name: 'lastName', label: '姓' },
+                { name: 'firstName', label: '名' },
+                { name: 'birthDate', label: '生年月日' },
+                { name: 'maritalStatus', label: '婚姻状況' },
+                { name: 'childrenCount', label: 'お子様の人数' },
+                { name: 'youngestChildBirthYear', label: '末子の生まれ年' },
+                { name: 'phone', label: '電話番号' },
+                { name: 'desiredStartDate', label: '転職希望時期' },
+                { name: 'transferPriority', label: '転職で最も重視すること' }
+            ];
+            
+            // 未入力の必須項目をチェック
+            const missingFields = [];
+            requiredFields.forEach(field => {
+                const value = new FormData(form).get(field.name);
+                if (!value || value.trim() === '') {
+                    missingFields.push(field.label);
+                }
+            });
+            
+            if (missingFields.length > 0) {
+                const message = `以下の必須項目を入力してください:\n\n${missingFields.join('\n')}`;
+                showError(message);
+                return;
+            }
             
             goToPage(2); // ローディング表示
             
