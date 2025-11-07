@@ -588,19 +588,69 @@
             window.location.href = appointmentUrl;
         }
 
-        // ========================================
-        // 「後で予約する」ボタンの処理
-        // ========================================
-        function handleLaterButton() {
-            if (liff.isInClient()) {
-                // LINEアプリ内 → ウィンドウを閉じる
-                liff.closeWindow();
-            } else {
-                // 外部ブラウザ → window.close()を試みる
-                // 閉じられない場合は何もしない
-                window.close();
-            }
+// ========================================
+// 「後で予約する」ボタンの処理
+// ========================================
+function handleLaterButton() {
+    console.log('後で予約するボタンがクリックされました');
+    console.log('LIFF isInClient:', liff.isInClient());
+    console.log('LIFF isLoggedIn:', liff.isLoggedIn());
+    
+    if (liff.isInClient()) {
+        console.log('LINEアプリ内で実行: liff.closeWindow()を呼び出します');
+        try {
+            liff.closeWindow();
+            console.log('liff.closeWindow()を実行しました');
+        } catch (error) {
+            console.error('liff.closeWindow()エラー:', error);
+            showCloseMessage();
         }
+    } else {
+        console.log('外部ブラウザで実行: window.close()を試みます');
+        const closed = window.close();
+        console.log('window.close()の結果:', closed);
+        
+        // window.close()が失敗した場合
+        setTimeout(() => {
+            showCloseMessage();
+        }, 500);
+    }
+}
+
+// ========================================
+// 閉じられなかった場合のメッセージ表示
+// ========================================
+function showCloseMessage() {
+    const message = document.createElement('div');
+    message.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        text-align: center;
+        z-index: 9999;
+        max-width: 80%;
+    `;
+    message.innerHTML = `
+        <p style="font-size: 1.2em; margin-bottom: 15px; font-weight: bold;">登録完了！✅</p>
+        <p style="color: #666; margin-bottom: 20px;">このページを閉じてLINEに戻ってください</p>
+        <button onclick="location.href='https://line.me/R/'" style="
+            background: #06C755;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+        ">LINEを開く</button>
+    `;
+    document.body.appendChild(message);
+}
 
         // ========================================
         // フォーム送信
