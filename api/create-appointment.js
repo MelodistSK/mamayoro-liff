@@ -5,6 +5,7 @@
  * - LINE userIDで求職者を検索
  * - 面談管理アプリにレコード作成（ルックアップで自動コピー）
  * - Googleカレンダーに予定追加
+ * - カレンダーイベントIDをkintoneに保存
  */
 
 import { google } from 'googleapis';
@@ -111,6 +112,7 @@ export default async function handler(req, res) {
             start: { value: startTime },
             end: { value: endTime },
             LINEuserID: { value: userId } // ルックアップのキーフィールド
+            // calender_id は後で更新する
         };
         
         console.log('作成するレコード:', JSON.stringify(appointmentRecord, null, 2));
@@ -184,16 +186,15 @@ export default async function handler(req, res) {
         console.log('- 求職者レコードURL:', jobseekerRecordUrl);
         console.log('========================================');
         
-        // ⭐ 修正: タイムゾーンなしの文字列で送信
         const event = {
             summary: `${jobseekerName}_#${createRecordData.id}#`,
             description: `求職者: ${jobseekerName}\nLINE表示名: ${lineDisplayName}\nLINE userID: ${userId}\n\n📋 kintone面談レコード:\n${appointmentRecordUrl}\n\n👤 kintone求職者レコード:\n${jobseekerRecordUrl}`,
             start: {
-                dateTime: `${date}T${startTime}:00`, // タイムゾーンなしの文字列
+                dateTime: `${date}T${startTime}:00`,
                 timeZone: 'Asia/Tokyo',
             },
             end: {
-                dateTime: `${date}T${endTime}:00`, // タイムゾーンなしの文字列
+                dateTime: `${date}T${endTime}:00`,
                 timeZone: 'Asia/Tokyo',
             },
         };
@@ -207,10 +208,44 @@ export default async function handler(req, res) {
                 resource: event,
             });
             
+            const eventId = calendarResponse.data.id;
+            
             console.log('Googleカレンダー予定作成成功:');
-            console.log('- イベントID:', calendarResponse.data.id);
+            console.log('- イベントID:', eventId);
             console.log('- HTMLリンク:', calendarResponse.data.htmlLink);
             console.log('========================================');
+            
+            // ========================================
+            // 4. カレンダーイベントIDをkintoneに保存
+            // ========================================
+            console.log('ステップ4: カレンダーイベントIDをkintoneに保存中...');
+            
+            const updateRecordResponse = await fetch(`${kintoneBaseUrl}/record.json`, {
+                method: 'PUT',
+                headers: {
+                    'X-Cybozu-API-Token': APPOINTMENT_API_TOKEN,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    app: APPOINTMENT_APP_ID,
+                    id: createRecordData.id,
+                    record: {
+                        calender_id: { value: eventId }
+                    }
+                })
+            });
+            
+            console.log('レコード更新レスポンスステータス:', updateRecordResponse.status);
+            
+            if (!updateRecordResponse.ok) {
+                const errorText = await updateRecordResponse.text();
+                console.error('レコード更新エラー:', errorText);
+                console.warn('警告: カレンダーイベントIDの保存に失敗しましたが、予約は完了しています');
+            } else {
+                console.log('カレンダーイベントID保存成功');
+                console.log('- 保存したイベントID:', eventId);
+                console.log('========================================');
+            }
             
             // ========================================
             // 成功レスポンス
@@ -221,7 +256,7 @@ export default async function handler(req, res) {
             return res.status(200).json({
                 success: true,
                 kintoneRecordId: createRecordData.id,
-                calendarEventId: calendarResponse.data.id,
+                calendarEventId: eventId,
                 calendarEventLink: calendarResponse.data.htmlLink,
                 jobseekerName: jobseekerName,
                 message: '予約が完了しました'
