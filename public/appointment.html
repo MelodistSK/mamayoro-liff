@@ -354,100 +354,100 @@
             }
         });
 
-// ========================================
-// カレンダー初期化
-// ========================================
-async function initializeCalendar() {
-    const container = document.getElementById('calendarContainer');
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    // 2週間分の日付を生成
-    const dates = [];
-    for (let i = 0; i < 14; i++) {
-        const date = new Date(today);
-        date.setDate(today.getDate() + i);
-        dates.push(date);
-    }
-    
-    // 月ごとにグループ化
-    const monthGroups = {};
-    dates.forEach(date => {
-        const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
-        if (!monthGroups[monthKey]) {
-            monthGroups[monthKey] = [];
-        }
-        monthGroups[monthKey].push(date);
-    });
-    
-    // 各月のカレンダーを作成
-    Object.entries(monthGroups).forEach(([monthKey, monthDates]) => {
-        const firstDate = monthDates[0];
-        const monthDiv = document.createElement('div');
-        monthDiv.style.marginBottom = '30px';
-        
-        // 月のヘッダー
-        const header = document.createElement('div');
-        header.className = 'month-header';
-        header.textContent = `${firstDate.getFullYear()}年${firstDate.getMonth() + 1}月`;
-        monthDiv.appendChild(header);
-        
-        // 曜日ヘッダー
-        const weekdayHeader = document.createElement('div');
-        weekdayHeader.className = 'weekday-header';
-        ['日', '月', '火', '水', '木', '金', '土'].forEach(day => {
-            const dayDiv = document.createElement('div');
-            dayDiv.textContent = day;
-            weekdayHeader.appendChild(dayDiv);
-        });
-        monthDiv.appendChild(weekdayHeader);
-        
-        // 日付グリッド
-        const gridDiv = document.createElement('div');
-        gridDiv.className = 'date-selector';
-        
-        // ⭐ 修正: 表示する最初の日付の曜日に合わせて空白を追加
-        const startDay = firstDate.getDay(); // この月で最初に表示する日の曜日
-        
-        for (let i = 0; i < startDay; i++) {
-            const emptyDiv = document.createElement('div');
-            gridDiv.appendChild(emptyDiv);
-        }
-        
-        // 日付を追加
-        monthDates.forEach(date => {
-            const dateDiv = document.createElement('div');
-            dateDiv.className = 'date-option';
+        // ========================================
+        // カレンダー初期化
+        // ========================================
+        async function initializeCalendar() {
+            const container = document.getElementById('calendarContainer');
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
             
-            const dayOfWeek = date.getDay();
-            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-            
-            if (isWeekend) {
-                dateDiv.classList.add('disabled');
+            // 2週間分の日付を生成
+            const dates = [];
+            for (let i = 0; i < 14; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+                dates.push(date);
             }
             
-            const daySpan = document.createElement('div');
-            daySpan.className = 'date-day';
-            daySpan.textContent = ['日', '月', '火', '水', '木', '金', '土'][dayOfWeek];
+            // 月ごとにグループ化
+            const monthGroups = {};
+            dates.forEach(date => {
+                const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+                if (!monthGroups[monthKey]) {
+                    monthGroups[monthKey] = [];
+                }
+                monthGroups[monthKey].push(date);
+            });
             
-            const numberSpan = document.createElement('div');
-            numberSpan.className = 'date-number';
-            numberSpan.textContent = date.getDate();
-            
-            dateDiv.appendChild(daySpan);
-            dateDiv.appendChild(numberSpan);
-            
-            if (!isWeekend) {
-                dateDiv.addEventListener('click', () => selectDate(date, dateDiv));
-            }
-            
-            gridDiv.appendChild(dateDiv);
-        });
-        
-        monthDiv.appendChild(gridDiv);
-        container.appendChild(monthDiv);
-    });
-}
+            // 各月のカレンダーを作成
+            Object.entries(monthGroups).forEach(([monthKey, monthDates]) => {
+                const firstDate = monthDates[0];
+                const monthDiv = document.createElement('div');
+                monthDiv.style.marginBottom = '30px';
+                
+                // 月のヘッダー
+                const header = document.createElement('div');
+                header.className = 'month-header';
+                header.textContent = `${firstDate.getFullYear()}年${firstDate.getMonth() + 1}月`;
+                monthDiv.appendChild(header);
+                
+                // 曜日ヘッダー
+                const weekdayHeader = document.createElement('div');
+                weekdayHeader.className = 'weekday-header';
+                ['日', '月', '火', '水', '木', '金', '土'].forEach(day => {
+                    const dayDiv = document.createElement('div');
+                    dayDiv.textContent = day;
+                    weekdayHeader.appendChild(dayDiv);
+                });
+                monthDiv.appendChild(weekdayHeader);
+                
+                // 日付グリッド
+                const gridDiv = document.createElement('div');
+                gridDiv.className = 'date-selector';
+                
+                // ⭐ 修正: 表示する最初の日付の曜日に合わせて空白を追加
+                const startDay = firstDate.getDay(); // この月で最初に表示する日の曜日
+                
+                for (let i = 0; i < startDay; i++) {
+                    const emptyDiv = document.createElement('div');
+                    gridDiv.appendChild(emptyDiv);
+                }
+                
+                // 日付を追加
+                monthDates.forEach(date => {
+                    const dateDiv = document.createElement('div');
+                    dateDiv.className = 'date-option';
+                    
+                    const dayOfWeek = date.getDay();
+                    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                    
+                    if (isWeekend) {
+                        dateDiv.classList.add('disabled');
+                    }
+                    
+                    const daySpan = document.createElement('div');
+                    daySpan.className = 'date-day';
+                    daySpan.textContent = ['日', '月', '火', '水', '木', '金', '土'][dayOfWeek];
+                    
+                    const numberSpan = document.createElement('div');
+                    numberSpan.className = 'date-number';
+                    numberSpan.textContent = date.getDate();
+                    
+                    dateDiv.appendChild(daySpan);
+                    dateDiv.appendChild(numberSpan);
+                    
+                    if (!isWeekend) {
+                        dateDiv.addEventListener('click', () => selectDate(date, dateDiv));
+                    }
+                    
+                    gridDiv.appendChild(dateDiv);
+                });
+                
+                monthDiv.appendChild(gridDiv);
+                container.appendChild(monthDiv);
+            });
+        }
 
         // ========================================
         // 日付選択
@@ -478,7 +478,8 @@ async function initializeCalendar() {
             timeSlotsContainer.innerHTML = '<div class="time-slot disabled">読み込み中...</div>';
             
             try {
-                const dateStr = date.toISOString().split('T')[0];
+                // ⭐ 修正: ローカル日付を直接フォーマット
+                const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
                 const response = await fetch(`/api/get-available-slots?date=${dateStr}`);
                 
                 if (!response.ok) {
@@ -552,6 +553,14 @@ async function initializeCalendar() {
                 const endDateTime = new Date(startDateTime);
                 endDateTime.setMinutes(endDateTime.getMinutes() + 30);
                 
+                // ⭐ 修正: ローカル日付を直接フォーマット（タイムゾーン変換なし）
+                const dateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
+                
+                console.log('予約データ:');
+                console.log('- 選択された日付オブジェクト:', selectedDate);
+                console.log('- フォーマット後の日付文字列:', dateStr);
+                console.log('- 開始時刻:', selectedTime);
+                
                 const response = await fetch('/api/create-appointment', {
                     method: 'POST',
                     headers: {
@@ -559,7 +568,7 @@ async function initializeCalendar() {
                     },
                     body: JSON.stringify({
                         userId: lineProfile.userId,
-                        date: selectedDate.toISOString().split('T')[0],
+                        date: dateStr, // ✅ "2025-11-07" のような形式
                         startTime: selectedTime,
                         endTime: `${String(endDateTime.getHours()).padStart(2, '0')}:${String(endDateTime.getMinutes()).padStart(2, '0')}`
                     })
@@ -574,10 +583,10 @@ async function initializeCalendar() {
                 
                 // 完了メッセージを設定
                 const confirmationMessage = document.getElementById('confirmationMessage');
-                const dateStr = `${selectedDate.getFullYear()}年${selectedDate.getMonth() + 1}月${selectedDate.getDate()}日`;
+                const dateStrDisplay = `${selectedDate.getFullYear()}年${selectedDate.getMonth() + 1}月${selectedDate.getDate()}日`;
                 confirmationMessage.innerHTML = `
                     面談予約が完了しました。<br><br>
-                    <strong>${dateStr} ${selectedTime}</strong><br><br>
+                    <strong>${dateStrDisplay} ${selectedTime}</strong><br><br>
                     担当者よりLINEでご連絡いたします。
                 `;
                 
