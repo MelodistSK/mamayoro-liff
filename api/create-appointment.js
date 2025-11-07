@@ -6,6 +6,7 @@
  * - 面談管理アプリにレコード作成（ルックアップで自動コピー）
  * - Googleカレンダーに予定追加
  * - カレンダーイベントIDをkintoneに保存
+ * - 求職者IDを面談管理アプリにコピー
  */
 
 import { google } from 'googleapis';
@@ -93,11 +94,13 @@ export default async function handler(req, res) {
         const jobseeker = searchData.records[0];
         const jobseekerName = jobseeker.name.value;
         const lineDisplayName = jobseeker.line_display_name?.value || jobseekerName;
+        const jobseekerId = jobseeker.jobseeker_id?.value || ''; // ⭐ 求職者IDを取得
         
         console.log('求職者を特定:');
         console.log('- 名前:', jobseekerName);
         console.log('- LINE表示名:', lineDisplayName);
         console.log('- レコードID:', jobseeker.$id.value);
+        console.log('- 求職者ID:', jobseekerId); // ⭐ 追加
         console.log('========================================');
         
         // ========================================
@@ -111,8 +114,8 @@ export default async function handler(req, res) {
             date: { value: date },
             start: { value: startTime },
             end: { value: endTime },
-            LINEuserID: { value: userId } // ルックアップのキーフィールド
-            // calender_id は後で更新する
+            LINEuserID: { value: userId }, // ルックアップのキーフィールド
+            求職者ID: { value: jobseekerId } // ⭐ 求職者IDを明示的に送信
         };
         
         console.log('作成するレコード:', JSON.stringify(appointmentRecord, null, 2));
