@@ -631,19 +631,9 @@
                 // LINEアプリ内 → ウィンドウを閉じる
                 liff.closeWindow();
             } else {
-                // 外部ブラウザ → 強制的にタブを閉じる試み
+                // 外部ブラウザ → window.close()を試みる
+                // 閉じられない場合は何もしない
                 window.close();
-                
-                // window.close()が失敗した場合の代替処理
-                setTimeout(() => {
-                    // 履歴があれば前のページに戻る
-                    if (window.history.length > 1) {
-                        window.history.back();
-                    } else {
-                        // 履歴がない場合はLINEアプリを開く
-                        window.location.href = 'https://line.me/R/';
-                    }
-                }, 100);
             }
         }
     </script>
