@@ -299,7 +299,7 @@
                     <h2>予約完了!</h2>
                     <p id="confirmationMessage"></p>
                 </div>
-                <button class="btn btn-primary" onclick="liff.closeWindow()">閉じる</button>
+                <button class="btn btn-primary" onclick="handleCloseWindow()">閉じる</button>
             </div>
         </div>
     </div>
@@ -621,6 +621,21 @@
             setTimeout(() => {
                 errorElement.classList.remove('active');
             }, 5000);
+        }
+
+        // ========================================
+        // 「閉じる」ボタンの処理
+        // ========================================
+        function handleCloseWindow() {
+            if (liff.isInClient()) {
+                // LINEアプリ内 → ウィンドウを閉じる
+                liff.closeWindow();
+            } else {
+                // 外部ブラウザ → メッセージを表示
+                alert('予約が完了しました。\nこのタブを閉じてください。');
+                // オプション: 自動的にタブを閉じる試み
+                window.close();
+            }
         }
     </script>
 </body>
