@@ -323,11 +323,11 @@
                         <label>婚姻状況<span class="required">*</span></label>
                         <div class="radio-group-vertical">
                             <div class="radio-option">
-                                <input type="radio" id="maritalDivorced" name="maritalStatus" value="シングル（離婚）" required>
+                                <input type="radio" id="maritalDivorced" name="maritalStatus" value="シングル(離婚)" required>
                                 <label for="maritalDivorced">シングル（離婚）</label>
                             </div>
                             <div class="radio-option">
-                                <input type="radio" id="maritalSingle" name="maritalStatus" value="シングル（未婚）" required>
+                                <input type="radio" id="maritalSingle" name="maritalStatus" value="シングル(未婚)" required>
                                 <label for="maritalSingle">シングル（未婚）</label>
                             </div>
                             <div class="radio-option">
@@ -527,7 +527,7 @@
                     </p>
                 </div>
                 <button class="btn btn-primary" onclick="goToAppointment()" style="margin-bottom: 15px;">面談予約へ進む</button>
-                <button class="btn btn-secondary" onclick="liff.closeWindow()">後で予約する</button>
+                <button class="btn btn-secondary" onclick="handleLaterButton()">後で予約する</button>
             </div>
         </div>
     </div>
@@ -585,6 +585,21 @@
             // LINE userIDをURLパラメータとして渡す
             const appointmentUrl = `/appointment.html?userId=${lineProfile.userId}`;
             window.location.href = appointmentUrl;
+        }
+
+        // ========================================
+        // 「後で予約する」ボタンの処理
+        // ========================================
+        function handleLaterButton() {
+            if (liff.isInClient()) {
+                // LINEアプリ内 → ウィンドウを閉じる
+                liff.closeWindow();
+            } else {
+                // 外部ブラウザ → メッセージを表示
+                alert('面談予約は後からでも可能です。\nLINEのトーク画面からいつでも予約できます。');
+                // オプション: LINEアプリを開く
+                window.open('https://line.me/R/', '_blank');
+            }
         }
 
         // ========================================
