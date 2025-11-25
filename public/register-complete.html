@@ -441,10 +441,6 @@
                                 <input type="radio" id="male" name="gender" value="男性">
                                 <label for="male">男性</label>
                             </div>
-                            <div class="radio-option">
-                                <input type="radio" id="other" name="gender" value="その他">
-                                <label for="other">その他</label>
-                            </div>
                         </div>
                     </div>
                     
@@ -452,32 +448,60 @@
                     
                     <div class="form-group">
                         <label>婚姻状況 <span class="required">必須</span></label>
-                        <select id="maritalStatus" name="maritalStatus" required>
-                            <option value="">選択してください</option>
-                            <option value="離婚">離婚</option>
-                            <option value="死別">死別</option>
-                            <option value="未婚">未婚</option>
-                            <option value="既婚">既婚</option>
-                            <option value="その他">その他</option>
-                        </select>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="marital_divorce" name="maritalStatus" value="シングル（離婚）" required>
+                                <label for="marital_divorce">シングル（離婚）</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="marital_single" name="maritalStatus" value="シングル（未婚）">
+                                <label for="marital_single">シングル（未婚）</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="marital_married" name="maritalStatus" value="既婚">
+                                <label for="marital_married">既婚</label>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="form-group">
                         <label>お子様の人数 <span class="required">必須</span></label>
                         <select id="childrenCount" name="childrenCount" required>
                             <option value="">選択してください</option>
-                            <option value="0">0人</option>
-                            <option value="1">1人</option>
-                            <option value="2">2人</option>
-                            <option value="3">3人</option>
-                            <option value="4">4人以上</option>
+                            <option value="1人">1人</option>
+                            <option value="2人">2人</option>
+                            <option value="3人">3人</option>
+                            <option value="4人">4人</option>
+                            <option value="5人以上">5人以上</option>
                         </select>
                     </div>
                     
                     <div class="form-group">
-                        <label>末子の生まれ年 <span class="required">必須</span></label>
+                        <label>最も年齢が低いお子様の生まれ年 <span class="required">必須</span></label>
                         <select id="youngestChildYear" name="youngestChildYear" required>
                             <option value="">選択してください</option>
+                            <option value="2025年">2025年</option>
+                            <option value="2024年">2024年</option>
+                            <option value="2023年">2023年</option>
+                            <option value="2022年">2022年</option>
+                            <option value="2021年">2021年</option>
+                            <option value="2020年">2020年</option>
+                            <option value="2019年">2019年</option>
+                            <option value="2018年">2018年</option>
+                            <option value="2017年">2017年</option>
+                            <option value="2016年">2016年</option>
+                            <option value="2015年">2015年</option>
+                            <option value="2014年">2014年</option>
+                            <option value="2013年">2013年</option>
+                            <option value="2012年">2012年</option>
+                            <option value="2011年">2011年</option>
+                            <option value="2010年">2010年</option>
+                            <option value="2009年">2009年</option>
+                            <option value="2008年">2008年</option>
+                            <option value="2007年">2007年</option>
+                            <option value="2006年">2006年</option>
+                            <option value="2005年">2005年</option>
+                            <option value="2004年以前">2004年以前</option>
                         </select>
                     </div>
                     
@@ -553,12 +577,11 @@
                         <label>転職希望時期 <span class="required">必須</span></label>
                         <select id="desiredStartDate" name="desiredStartDate" required>
                             <option value="">選択してください</option>
-                            <option value="すぐにでも">すぐにでも</option>
-                            <option value="1ヶ月以内">1ヶ月以内</option>
+                            <option value="すぐにでも（1ヶ月以内）">すぐにでも（1ヶ月以内）</option>
                             <option value="3ヶ月以内">3ヶ月以内</option>
                             <option value="半年以内">半年以内</option>
-                            <option value="1年以内">1年以内</option>
                             <option value="良い求人があれば">良い求人があれば</option>
+                            <option value="まずは情報収集">まずは情報収集</option>
                         </select>
                     </div>
                     
@@ -566,14 +589,12 @@
                         <label>転職で最も重視すること <span class="required">必須</span></label>
                         <select id="transferPriority" name="transferPriority" required>
                             <option value="">選択してください</option>
-                            <option value="給与">給与</option>
-                            <option value="勤務時間">勤務時間（残業なし等）</option>
-                            <option value="勤務地">勤務地（通勤時間等）</option>
-                            <option value="休日">休日（土日祝休み等）</option>
-                            <option value="福利厚生">福利厚生</option>
-                            <option value="仕事内容">仕事内容</option>
-                            <option value="キャリアアップ">キャリアアップ</option>
-                            <option value="職場環境">職場環境・人間関係</option>
+                            <option value="収入アップ（今より良い給与）">収入アップ（今より良い給与）</option>
+                            <option value="ワークライフバランス（子育てと両立）">ワークライフバランス（子育てと両立）</option>
+                            <option value="雇用の安定（正社員希望）">雇用の安定（正社員希望）</option>
+                            <option value="働きやすい環境（理解ある職場）">働きやすい環境（理解ある職場）</option>
+                            <option value="キャリアアップ（スキルを活かす・伸ばす）">キャリアアップ（スキルを活かす・伸ばす）</option>
+                            <option value="復職・再就職（ブランク明け）">復職・再就職（ブランク明け）</option>
                         </select>
                     </div>
                     
@@ -649,23 +670,7 @@
                 console.error('LIFF initialization failed:', error);
                 showError('LINEアプリから開いてください');
             }
-
-            // 末子の生まれ年の選択肢を生成
-            generateYearOptions();
         });
-
-        // 末子の生まれ年の選択肢を生成
-        function generateYearOptions() {
-            const select = document.getElementById('youngestChildYear');
-            const currentYear = new Date().getFullYear();
-            
-            for (let year = currentYear; year >= currentYear - 25; year--) {
-                const option = document.createElement('option');
-                option.value = year;
-                option.textContent = `${year}年`;
-                select.appendChild(option);
-            }
-        }
 
         // 同意チェックボックスの状態変更
         function checkConsent() {
@@ -694,19 +699,25 @@
                 const birthDate = document.getElementById('birthDate').value;
                 const age = calculateAge(birthDate);
 
-                // レコードデータを作成
+                // 姓名を結合して name フィールドに設定
+                const lastName = document.getElementById('lastName').value;
+                const firstName = document.getElementById('firstName').value;
+                const fullName = lastName + ' ' + firstName;
+
+                // レコードデータを作成（kintoneのフィールドコードに合わせる）
                 const record = {
                     line_user_id: { value: lineProfile?.userId || '' },
                     line_display_name: { value: lineProfile?.displayName || '' },
                     profile_image_url: { value: lineProfile?.pictureUrl || '' },
-                    last_name: { value: document.getElementById('lastName').value },
-                    first_name: { value: document.getElementById('firstName').value },
+                    name: { value: fullName },
+                    last_name: { value: lastName },
+                    first_name: { value: firstName },
                     last_name_kana: { value: document.getElementById('lastNameKana').value },
                     first_name_kana: { value: document.getElementById('firstNameKana').value },
                     birth_date: { value: birthDate },
                     age: { value: age.toString() },
                     gender: { value: document.querySelector('input[name="gender"]:checked')?.value || '' },
-                    marital_status: { value: document.getElementById('maritalStatus').value },
+                    marital_status: { value: document.querySelector('input[name="maritalStatus"]:checked')?.value || '' },
                     children_count: { value: document.getElementById('childrenCount').value },
                     youngest_child_birth_year: { value: document.getElementById('youngestChildYear').value },
                     phone: { value: document.getElementById('phone').value },
@@ -714,8 +725,7 @@
                     prefecture: { value: document.getElementById('prefecture').value },
                     desired_start_date: { value: document.getElementById('desiredStartDate').value },
                     transfer_priority: { value: document.getElementById('transferPriority').value },
-                    status: { value: '仮登録' },
-                    activity_temperature: { value: 'ホット' }
+                    status: { value: '仮登録' }
                 };
 
                 console.log('Submitting record:', record);
