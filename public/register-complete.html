@@ -651,9 +651,6 @@
 
 // LIFF初期化
 window.addEventListener('load', async () => {
-    // 年選択肢初期化
-    initYearOptions();
-    
     try {
         console.log('LIFF初期化開始...');
         await liff.init({ liffId: CONFIG.LIFF_ID });
