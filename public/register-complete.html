@@ -651,24 +651,70 @@
 
 // LIFF初期化
 window.addEventListener('load', async () => {
+    // 年選択肢初期化
+    initYearOptions();
+    
     try {
         console.log('LIFF初期化開始...');
         await liff.init({ liffId: CONFIG.LIFF_ID });
         console.log('LIFF初期化成功');
-
-        if (!liff.isLoggedIn()) {
-            console.log('未ログイン、ログインページへ');
-            liff.login();  // ← 引数なしに変更
+        console.log('isInClient:', liff.isInClient());
+        console.log('isLoggedIn:', liff.isLoggedIn());
+        
+        // URLパラメータをチェック（ログイン後のリダイレクトかどうか）
+        const urlParams = new URLSearchParams(window.location.search);
+        const hasLiffParams = urlParams.has('liffClientId') || urlParams.has('code');
+        
+        if (liff.isLoggedIn()) {
+            // ログイン済み
+            lineProfile = await liff.getProfile();
+            console.log('LINE Profile:', lineProfile);
+        } else if (hasLiffParams) {
+            // ログイン後のリダイレクトだがisLoggedIn=false（外部ブラウザの問題）
+            console.log('ログイン後だがセッションが維持されていない');
+            console.log('外部ブラウザでの制限のため、LINEアプリで開いてください');
+            showExternalBrowserMessage();
+            return;
+        } else if (liff.isInClient()) {
+            // LINEアプリ内で未ログイン → 自動ログイン
+            console.log('LINEアプリ内で未ログイン、ログインページへ');
+            liff.login();
+            return;
+        } else {
+            // 外部ブラウザで初回アクセス → 自動ログイン試行
+            console.log('外部ブラウザで未ログイン、ログインページへ');
+            liff.login();
             return;
         }
-
-        lineProfile = await liff.getProfile();
-        console.log('LINE Profile:', lineProfile);
-
+        
     } catch (error) {
         console.error('LIFF initialization failed:', error);
     }
 });
+
+// 外部ブラウザ用メッセージ表示
+function showExternalBrowserMessage() {
+    const container = document.querySelector('.container');
+    const messageCard = document.createElement('div');
+    messageCard.className = 'card';
+    messageCard.innerHTML = `
+        <div style="text-align: center; padding: 20px;">
+            <div style="font-size: 3em; margin-bottom: 20px;">📱</div>
+            <h2 style="margin-bottom: 20px;">LINEアプリで開いてください</h2>
+            <p style="color: #666; line-height: 1.8; margin-bottom: 20px;">
+                このページはLINEアプリ内で<br>開く必要があります。
+            </p>
+            <p style="color: #888; font-size: 0.9em; line-height: 1.6;">
+                LINEのトーク画面から<br>リッチメニューをタップして<br>アクセスしてください。
+            </p>
+        </div>
+    `;
+    
+    document.querySelectorAll('.page').forEach(page => {
+        page.style.display = 'none';
+    });
+    container.insertBefore(messageCard, container.firstChild.nextSibling);
+}
 
         // 手動ログインボタンを表示
         function showLoginButton() {
