@@ -591,24 +591,78 @@
                 console.log('LIFF初期化開始...');
                 await liff.init({ liffId: CONFIG.LIFF_ID });
                 console.log('LIFF初期化成功');
+                console.log('isInClient:', liff.isInClient());
+                console.log('isLoggedIn:', liff.isLoggedIn());
 
-                if (!liff.isLoggedIn()) {
-                    console.log('未ログイン - ログインページへリダイレクト');
-                    liff.login();
-                    return;
+                // ログイン済みかチェック
+                if (liff.isLoggedIn()) {
+                    // ログイン済み - プロフィール取得
+                    lineProfile = await liff.getProfile();
+                    console.log('LINE Profile:', lineProfile);
+                    
+                    // ログイン試行フラグをクリア
+                    sessionStorage.removeItem('liff_login_attempted');
+                    
+                    // カレンダーを初期化
+                    renderCalendar();
+                } else {
+                    // 未ログイン
+                    console.log('未ログイン');
+                    
+                    // 無限ループ防止: すでにログイン試行済みかチェック
+                    const loginAttempted = sessionStorage.getItem('liff_login_attempted');
+                    
+                    if (loginAttempted) {
+                        // すでにログイン試行済み - ログインボタンを表示
+                        console.log('ログイン試行済み - 手動ログインボタンを表示');
+                        showLoginButton();
+                    } else {
+                        // 初回 - 自動ログイン試行
+                        console.log('初回ログイン試行');
+                        sessionStorage.setItem('liff_login_attempted', 'true');
+                        liff.login({ redirectUri: window.location.href });
+                    }
                 }
-
-                lineProfile = await liff.getProfile();
-                console.log('LINE Profile:', lineProfile);
 
             } catch (error) {
                 console.error('LIFF initialization failed:', error);
-                showError('LINEアプリから開いてください');
+                showError('初期化に失敗しました。ページを再読み込みしてください。');
             }
-
-            // カレンダーを初期化
-            renderCalendar();
         });
+
+        // 手動ログインボタンを表示
+        function showLoginButton() {
+            const container = document.querySelector('.container');
+            const loginCard = document.createElement('div');
+            loginCard.className = 'card';
+            loginCard.id = 'loginCard';
+            loginCard.innerHTML = `
+                <div style="text-align: center; padding: 20px;">
+                    <h2 style="margin-bottom: 20px;">🔐 LINEログイン</h2>
+                    <p style="color: #666; line-height: 1.8; margin-bottom: 30px;">
+                        面談予約にはLINEログインが必要です。
+                    </p>
+                    <button class="btn btn-primary" onclick="manualLogin()" style="margin-top: 0;">
+                        LINEでログイン
+                    </button>
+                    <p style="color: #888; font-size: 0.85em; margin-top: 20px;">
+                        ※ LINEアプリ内で開くと<br>自動的にログインされます
+                    </p>
+                </div>
+            `;
+            
+            // 既存のページを非表示にしてログインカードを表示
+            document.querySelectorAll('.page').forEach(page => {
+                page.style.display = 'none';
+            });
+            container.insertBefore(loginCard, container.firstChild.nextSibling);
+        }
+
+        // 手動ログイン
+        function manualLogin() {
+            sessionStorage.setItem('liff_login_attempted', 'true');
+            liff.login({ redirectUri: window.location.href });
+        }
 
         // カレンダー描画
         function renderCalendar() {
