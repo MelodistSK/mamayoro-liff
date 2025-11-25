@@ -658,20 +658,42 @@ window.addEventListener('load', async () => {
         console.log('isInClient:', liff.isInClient());
         console.log('isLoggedIn:', liff.isLoggedIn());
         
+        // アクセストークンを確認
+        const accessToken = liff.getAccessToken();
+        console.log('accessToken:', accessToken ? 'あり' : 'なし');
+        
         if (liff.isLoggedIn()) {
-            // ログイン済み
+            // ログイン済み（主にLINEアプリ内）
             lineProfile = await liff.getProfile();
             console.log('LINE Profile:', lineProfile);
             sessionStorage.removeItem('liff_login_attempted');
+        } else if (accessToken) {
+            // 外部ブラウザでアクセストークンがある場合
+            // LINE APIを直接呼び出してプロフィール取得
+            console.log('外部ブラウザ - アクセストークンでプロフィール取得');
+            try {
+                const response = await fetch('https://api.line.me/v2/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
+                if (response.ok) {
+                    lineProfile = await response.json();
+                    console.log('LINE Profile (from API):', lineProfile);
+                }
+            } catch (e) {
+                console.error('Profile fetch error:', e);
+            }
+            sessionStorage.removeItem('liff_login_attempted');
         } else {
-            // 未ログイン - 無限ループ防止
+            // 未ログイン
             const loginAttempted = sessionStorage.getItem('liff_login_attempted');
             
             if (loginAttempted) {
-                // すでにログイン試行済み → ボタン表示（ループ防止）
-                console.log('ログイン試行済み - 手動ログインボタンを表示');
-                showLoginButton();
-                return;
+                // ログイン試行済み → LINE情報なしでフォーム表示
+                console.log('ログイン試行済み - LINE情報なしでフォーム表示');
+                sessionStorage.removeItem('liff_login_attempted');
+                // そのままフォームを表示（lineProfileはnull）
             } else {
                 // 初回 → 自動ログイン試行
                 console.log('初回ログイン試行');
