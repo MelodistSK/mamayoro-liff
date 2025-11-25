@@ -658,30 +658,27 @@ window.addEventListener('load', async () => {
         console.log('isInClient:', liff.isInClient());
         console.log('isLoggedIn:', liff.isLoggedIn());
         
-        // URLパラメータをチェック（ログイン後のリダイレクトかどうか）
-        const urlParams = new URLSearchParams(window.location.search);
-        const hasLiffParams = urlParams.has('liffClientId') || urlParams.has('code');
-        
         if (liff.isLoggedIn()) {
             // ログイン済み
             lineProfile = await liff.getProfile();
             console.log('LINE Profile:', lineProfile);
-        } else if (hasLiffParams) {
-            // ログイン後のリダイレクトだがisLoggedIn=false（外部ブラウザの問題）
-            console.log('ログイン後だがセッションが維持されていない');
-            console.log('外部ブラウザでの制限のため、LINEアプリで開いてください');
-            showExternalBrowserMessage();
-            return;
-        } else if (liff.isInClient()) {
-            // LINEアプリ内で未ログイン → 自動ログイン
-            console.log('LINEアプリ内で未ログイン、ログインページへ');
-            liff.login();
-            return;
+            sessionStorage.removeItem('liff_login_attempted');
         } else {
-            // 外部ブラウザで初回アクセス → 自動ログイン試行
-            console.log('外部ブラウザで未ログイン、ログインページへ');
-            liff.login();
-            return;
+            // 未ログイン - 無限ループ防止
+            const loginAttempted = sessionStorage.getItem('liff_login_attempted');
+            
+            if (loginAttempted) {
+                // すでにログイン試行済み → ボタン表示（ループ防止）
+                console.log('ログイン試行済み - 手動ログインボタンを表示');
+                showLoginButton();
+                return;
+            } else {
+                // 初回 → 自動ログイン試行
+                console.log('初回ログイン試行');
+                sessionStorage.setItem('liff_login_attempted', 'true');
+                liff.login();
+                return;
+            }
         }
         
     } catch (error) {
