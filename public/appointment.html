@@ -585,50 +585,72 @@
             '2025-09-23', '2025-10-13', '2025-11-03', '2025-11-23', '2025-11-24'
         ];
 
-        // LIFF初期化
-        window.addEventListener('load', async () => {
-            try {
-                console.log('LIFF初期化開始...');
-                await liff.init({ liffId: CONFIG.LIFF_ID });
-                console.log('LIFF初期化成功');
-                console.log('isInClient:', liff.isInClient());
-                console.log('isLoggedIn:', liff.isLoggedIn());
+// LIFF初期化
+window.addEventListener('load', async () => {
+    // 年選択肢初期化
+    initYearOptions();
+    
+    try {
+        console.log('LIFF初期化開始...');
+        await liff.init({ liffId: CONFIG.LIFF_ID });
+        console.log('LIFF初期化成功');
+        console.log('isInClient:', liff.isInClient());
+        console.log('isLoggedIn:', liff.isLoggedIn());
+        
+        // URLパラメータをチェック（ログイン後のリダイレクトかどうか）
+        const urlParams = new URLSearchParams(window.location.search);
+        const hasLiffParams = urlParams.has('liffClientId') || urlParams.has('code');
+        
+        if (liff.isLoggedIn()) {
+            // ログイン済み
+            lineProfile = await liff.getProfile();
+            console.log('LINE Profile:', lineProfile);
+        } else if (hasLiffParams) {
+            // ログイン後のリダイレクトだがisLoggedIn=false（外部ブラウザの問題）
+            console.log('ログイン後だがセッションが維持されていない');
+            console.log('外部ブラウザでの制限のため、LINEアプリで開いてください');
+            showExternalBrowserMessage();
+            return;
+        } else if (liff.isInClient()) {
+            // LINEアプリ内で未ログイン → 自動ログイン
+            console.log('LINEアプリ内で未ログイン、ログインページへ');
+            liff.login();
+            return;
+        } else {
+            // 外部ブラウザで初回アクセス → 自動ログイン試行
+            console.log('外部ブラウザで未ログイン、ログインページへ');
+            liff.login();
+            return;
+        }
+        
+    } catch (error) {
+        console.error('LIFF initialization failed:', error);
+    }
+});
 
-                // ログイン済みかチェック
-                if (liff.isLoggedIn()) {
-                    // ログイン済み - プロフィール取得
-                    lineProfile = await liff.getProfile();
-                    console.log('LINE Profile:', lineProfile);
-                    
-                    // ログイン試行フラグをクリア
-                    sessionStorage.removeItem('liff_login_attempted');
-                    
-                    // カレンダーを初期化
-                    renderCalendar();
-                } else {
-                    // 未ログイン
-                    console.log('未ログイン');
-                    
-                    // 無限ループ防止: すでにログイン試行済みかチェック
-                    const loginAttempted = sessionStorage.getItem('liff_login_attempted');
-                    
-                    if (loginAttempted) {
-                        // すでにログイン試行済み - ログインボタンを表示
-                        console.log('ログイン試行済み - 手動ログインボタンを表示');
-                        showLoginButton();
-                    } else {
-                        // 初回 - 自動ログイン試行
-                        console.log('初回ログイン試行');
-                        sessionStorage.setItem('liff_login_attempted', 'true');
-                        liff.login({ redirectUri: window.location.href });
-                    }
-                }
-
-            } catch (error) {
-                console.error('LIFF initialization failed:', error);
-                showError('初期化に失敗しました。ページを再読み込みしてください。');
-            }
-        });
+// 外部ブラウザ用メッセージ表示
+function showExternalBrowserMessage() {
+    const container = document.querySelector('.container');
+    const messageCard = document.createElement('div');
+    messageCard.className = 'card';
+    messageCard.innerHTML = `
+        <div style="text-align: center; padding: 20px;">
+            <div style="font-size: 3em; margin-bottom: 20px;">📱</div>
+            <h2 style="margin-bottom: 20px;">LINEアプリで開いてください</h2>
+            <p style="color: #666; line-height: 1.8; margin-bottom: 20px;">
+                このページはLINEアプリ内で<br>開く必要があります。
+            </p>
+            <p style="color: #888; font-size: 0.9em; line-height: 1.6;">
+                LINEのトーク画面から<br>リッチメニューをタップして<br>アクセスしてください。
+            </p>
+        </div>
+    `;
+    
+    document.querySelectorAll('.page').forEach(page => {
+        page.style.display = 'none';
+    });
+    container.insertBefore(messageCard, container.firstChild.nextSibling);
+}
 
         // 手動ログインボタンを表示
         function showLoginButton() {
