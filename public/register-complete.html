@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>会員登録 - ままよろ人材紹介</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo h1 {
+            color: white;
+            font-size: 2em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .logo p {
+            color: rgba(255,255,255,0.9);
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        
+        h2 {
+            color: #333;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .info-box {
+            background: #f0f7ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 0.9em;
+            color: #555;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+        
+        .form-group label .required {
+            color: #ff6b6b;
+            margin-left: 4px;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .radio-group, .radio-group-vertical {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .radio-option {
+            position: relative;
+        }
+        
+        .radio-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+        
+        .radio-option label {
+            display: block;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: normal;
+        }
+        
+        .radio-option input[type="radio"]:checked + label {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+        
+        .section-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #667eea;
+            margin: 30px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e8ebff;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-top: 30px;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .success-message {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .success-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+        
+        .success-message h2 {
+            color: #06d6a0;
+            margin-bottom: 15px;
+        }
+        
+        .success-message p {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .error-message {
+            background: #ffe0e0;
+            border-left: 4px solid #ff6b6b;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            white-space: pre-line;
+        }
+        
+        .error-message.active {
+            display: block;
+        }
+        
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        .help-text {
+            font-size: 0.85em;
+            color: #888;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>🌸 ままよろ人材紹介</h1>
+            <p>シングルマザーのキャリアを全力でサポート</p>
+        </div>
+        
+        <div class="card">
+            <div class="error-message" id="errorMessage"></div>
+            
+            <!-- ページ1: 会員登録フォーム -->
+            <div class="page active" id="page1">
+                <h2>会員登録</h2>
+                <div class="info-box">
+                    あなたに最適な求人をご紹介するため、基本情報をご入力ください。
+                </div>
+                
+                <form id="registrationForm">
+                    <!-- 基本情報 -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>姓<span class="required">*</span></label>
+                            <input type="text" id="lastName" name="lastName" required placeholder="山田">
+                        </div>
+                        <div class="form-group">
+                            <label>名<span class="required">*</span></label>
+                            <input type="text" id="firstName" name="firstName" required placeholder="花子">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>セイ</label>
+                            <input type="text" id="lastNameKana" name="lastNameKana" placeholder="ヤマダ">
+                        </div>
+                        <div class="form-group">
+                            <label>メイ</label>
+                            <input type="text" id="firstNameKana" name="firstNameKana" placeholder="ハナコ">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>生年月日<span class="required">*</span></label>
+                        <input type="date" id="birthDate" name="birthDate" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>性別</label>
+                        <div class="radio-group" style="flex-direction: row;">
+                            <div class="radio-option" style="flex: 1;">
+                                <input type="radio" id="genderFemale" name="gender" value="女性">
+                                <label for="genderFemale">女性</label>
+                            </div>
+                            <div class="radio-option" style="flex: 1;">
+                                <input type="radio" id="genderMale" name="gender" value="男性">
+                                <label for="genderMale">男性</label>
+                            </div>
+                            <div class="radio-option" style="flex: 1;">
+                                <input type="radio" id="genderOther" name="gender" value="その他">
+                                <label for="genderOther">その他</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 家族構成 -->
+                    <div class="section-title">家族構成</div>
+                    
+                    <div class="form-group">
+                        <label>婚姻状況<span class="required">*</span></label>
+                        <div class="radio-group-vertical">
+                            <div class="radio-option">
+                                <input type="radio" id="maritalDivorced" name="maritalStatus" value="シングル(離婚)" required>
+                                <label for="maritalDivorced">シングル（離婚）</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="maritalSingle" name="maritalStatus" value="シングル(未婚)" required>
+                                <label for="maritalSingle">シングル（未婚）</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="maritalMarried" name="maritalStatus" value="既婚" required>
+                                <label for="maritalMarried">既婚</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>お子様の人数<span class="required">*</span></label>
+                        <select id="childrenCount" name="childrenCount" required>
+                            <option value="">選択してください</option>
+                            <option value="1人">1人</option>
+                            <option value="2人">2人</option>
+                            <option value="3人">3人</option>
+                            <option value="4人">4人</option>
+                            <option value="5人以上">5人以上</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>末子の生まれ年<span class="required">*</span></label>
+                        <select id="youngestChildBirthYear" name="youngestChildBirthYear" required>
+                            <option value="">選択してください</option>
+                            <option value="2024年">2024年</option>
+                            <option value="2023年">2023年</option>
+                            <option value="2022年">2022年</option>
+                            <option value="2021年">2021年</option>
+                            <option value="2020年">2020年</option>
+                            <option value="2019年">2019年</option>
+                            <option value="2018年">2018年</option>
+                            <option value="2017年">2017年</option>
+                            <option value="2016年">2016年</option>
+                            <option value="2015年">2015年</option>
+                            <option value="2014年">2014年</option>
+                            <option value="2013年">2013年</option>
+                            <option value="2012年">2012年</option>
+                            <option value="2011年">2011年</option>
+                            <option value="2010年">2010年</option>
+                            <option value="2009年">2009年</option>
+                            <option value="2008年">2008年</option>
+                            <option value="2007年">2007年</option>
+                            <option value="2006年">2006年</option>
+                            <option value="2005年">2005年</option>
+                            <option value="2004年以前">2004年以前</option>
+                        </select>
+                        <div class="help-text">一番下のお子様の生まれた年をお選びください</div>
+                    </div>
+                    
+                    <!-- 連絡先 -->
+                    <div class="section-title">連絡先</div>
+                    
+                    <div class="form-group">
+                        <label>電話番号<span class="required">*</span></label>
+                        <input type="tel" id="phone" name="phone" required placeholder="090-1234-5678">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>メールアドレス</label>
+                        <input type="email" id="email" name="email" placeholder="example@mail.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>都道府県</label>
+                        <select id="prefecture" name="prefecture">
+                            <option value="">選択してください</option>
+                            <option value="北海道">北海道</option>
+                            <option value="青森県">青森県</option>
+                            <option value="岩手県">岩手県</option>
+                            <option value="宮城県">宮城県</option>
+                            <option value="秋田県">秋田県</option>
+                            <option value="山形県">山形県</option>
+                            <option value="福島県">福島県</option>
+                            <option value="茨城県">茨城県</option>
+                            <option value="栃木県">栃木県</option>
+                            <option value="群馬県">群馬県</option>
+                            <option value="埼玉県">埼玉県</option>
+                            <option value="千葉県">千葉県</option>
+                            <option value="東京都">東京都</option>
+                            <option value="神奈川県">神奈川県</option>
+                            <option value="新潟県">新潟県</option>
+                            <option value="富山県">富山県</option>
+                            <option value="石川県">石川県</option>
+                            <option value="福井県">福井県</option>
+                            <option value="山梨県">山梨県</option>
+                            <option value="長野県">長野県</option>
+                            <option value="岐阜県">岐阜県</option>
+                            <option value="静岡県">静岡県</option>
+                            <option value="愛知県">愛知県</option>
+                            <option value="三重県">三重県</option>
+                            <option value="滋賀県">滋賀県</option>
+                            <option value="京都府">京都府</option>
+                            <option value="大阪府">大阪府</option>
+                            <option value="兵庫県">兵庫県</option>
+                            <option value="奈良県">奈良県</option>
+                            <option value="和歌山県">和歌山県</option>
+                            <option value="鳥取県">鳥取県</option>
+                            <option value="島根県">島根県</option>
+                            <option value="岡山県">岡山県</option>
+                            <option value="広島県">広島県</option>
+                            <option value="山口県">山口県</option>
+                            <option value="徳島県">徳島県</option>
+                            <option value="香川県">香川県</option>
+                            <option value="愛媛県">愛媛県</option>
+                            <option value="高知県">高知県</option>
+                            <option value="福岡県">福岡県</option>
+                            <option value="佐賀県">佐賀県</option>
+                            <option value="長崎県">長崎県</option>
+                            <option value="熊本県">熊本県</option>
+                            <option value="大分県">大分県</option>
+                            <option value="宮崎県">宮崎県</option>
+                            <option value="鹿児島県">鹿児島県</option>
+                            <option value="沖縄県">沖縄県</option>
+                        </select>
+                    </div>
+                    
+                    <!-- 転職意向 -->
+                    <div class="section-title">転職について</div>
+                    
+                    <div class="form-group">
+                        <label>転職希望時期<span class="required">*</span></label>
+                        <div class="radio-group-vertical">
+                            <div class="radio-option">
+                                <input type="radio" id="timing1" name="desiredStartDate" value="すぐにでも（1ヶ月以内）" required>
+                                <label for="timing1">すぐにでも（1ヶ月以内）</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="timing2" name="desiredStartDate" value="3ヶ月以内" required>
+                                <label for="timing2">3ヶ月以内</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="timing3" name="desiredStartDate" value="半年以内" required>
+                                <label for="timing3">半年以内</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="timing4" name="desiredStartDate" value="良い求人があれば" required>
+                                <label for="timing4">良い求人があれば</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="timing5" name="desiredStartDate" value="まずは情報収集" required>
+                                <label for="timing5">まずは情報収集</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>転職で最も重視すること<span class="required">*</span></label>
+                        <div class="radio-group-vertical">
+                            <div class="radio-option">
+                                <input type="radio" id="priority1" name="transferPriority" value="収入アップ（今より良い給与）" required>
+                                <label for="priority1">収入アップ（今より良い給与）</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="priority2" name="transferPriority" value="ワークライフバランス（子育てと両立）" required>
+                                <label for="priority2">ワークライフバランス（子育てと両立）</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="priority3" name="transferPriority" value="雇用の安定（正社員希望）" required>
+                                <label for="priority3">雇用の安定（正社員希望）</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="priority4" name="transferPriority" value="働きやすい環境（理解ある職場）" required>
+                                <label for="priority4">働きやすい環境（理解ある職場）</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="priority5" name="transferPriority" value="キャリアアップ（スキルを活かす・伸ばす）" required>
+                                <label for="priority5">キャリアアップ（スキルを活かす・伸ばす）</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="priority6" name="transferPriority" value="復職・再就職（ブランク明け）" required>
+                                <label for="priority6">復職・再就職（ブランク明け）</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">登録する</button>
+                </form>
+            </div>
+            
+            <!-- ページ2: ローディング -->
+            <div class="page" id="page2">
+                <div class="loading active">
+                    <div class="spinner"></div>
+                    <p>登録中です...</p>
+                </div>
+            </div>
+            
+            <!-- ページ3: 完了 -->
+            <div class="page" id="page3">
+                <div class="success-message">
+                    <div class="success-icon">✅</div>
+                    <h2>登録完了!</h2>
+                    <p>
+                        会員登録が完了しました。<br>
+                        続けて面談のご予約をお願いいたします。
+                    </p>
+                </div>
+                <button class="btn btn-primary" onclick="goToAppointment()" style="margin-bottom: 15px;">面談予約へ進む</button>
+                <button class="btn btn-secondary" onclick="handleLaterButton()">後で予約する</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // 設定情報
+        // ========================================
+        const CONFIG = {
+            LIFF_ID: '2008409890-bdVxpkD0'
+        };
+
+        // ========================================
+        // グローバル変数
+        // ========================================
+        let lineProfile = null;
+
+        // ========================================
+        // LIFF初期化
+        // ========================================
+        window.addEventListener('load', async () => {
+            try {
+                await liff.init({ liffId: CONFIG.LIFF_ID });
+                
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                    return;
+                }
+                
+                // LINEプロフィール取得
+                lineProfile = await liff.getProfile();
+                console.log('LINE Profile:', lineProfile);
+                
+            } catch (error) {
+                console.error('LIFF initialization failed:', error);
+                showError('LINEアプリから開いてください');
+            }
+        });
+
+        // ========================================
+        // ページ遷移
+        // ========================================
+        function goToPage(pageNumber) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(`page${pageNumber}`).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        // ========================================
+        // 面談予約ページへ遷移
+        // ========================================
+        function goToAppointment() {
+            // LINE userIDをURLパラメータとして渡す
+            const appointmentUrl = `/appointment.html?userId=${lineProfile.userId}`;
+            window.location.href = appointmentUrl;
+        }
+
+        // ========================================
+        // 「後で予約する」ボタンの処理
+        // ========================================
+        function handleLaterButton() {
+            console.log('後で予約するボタンがクリックされました');
+            console.log('LIFF isInClient:', liff.isInClient());
+            console.log('LIFF isLoggedIn:', liff.isLoggedIn());
+            
+            if (liff.isInClient()) {
+                console.log('LINEアプリ内で実行: liff.closeWindow()を呼び出します');
+                try {
+                    liff.closeWindow();
+                    console.log('liff.closeWindow()を実行しました');
+                } catch (error) {
+                    console.error('liff.closeWindow()エラー:', error);
+                    showCloseMessage();
+                }
+            } else {
+                console.log('外部ブラウザで実行: window.close()を試みます');
+                const closed = window.close();
+                console.log('window.close()の結果:', closed);
+                
+                // window.close()が失敗した場合
+                setTimeout(() => {
+                    showCloseMessage();
+                }, 500);
+            }
+        }
+
+        // ========================================
+        // 閉じられなかった場合のメッセージ表示
+        // ========================================
+        function showCloseMessage() {
+            const message = document.createElement('div');
+            message.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                padding: 30px;
+                border-radius: 15px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                text-align: center;
+                z-index: 9999;
+                max-width: 80%;
+            `;
+            message.innerHTML = `
+                <p style="font-size: 1.2em; margin-bottom: 15px; font-weight: bold;">登録完了！✅</p>
+                <p style="color: #666; margin-bottom: 20px;">このページを閉じてLINEに戻ってください</p>
+                <button onclick="location.href='https://line.me/R/'" style="
+                    background: #06C755;
+                    color: white;
+                    border: none;
+                    padding: 12px 24px;
+                    border-radius: 8px;
+                    font-size: 1em;
+                    font-weight: bold;
+                    cursor: pointer;
+                ">LINEを開く</button>
+            `;
+            document.body.appendChild(message);
+        }
+
+        // ========================================
+        // フォーム送信
+        // ========================================
+        document.getElementById('registrationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // ⭐ 追加: 必須項目のバリデーション
+            const form = e.target;
+            const requiredFields = [
+                { name: 'lastName', label: '姓' },
+                { name: 'firstName', label: '名' },
+                { name: 'birthDate', label: '生年月日' },
+                { name: 'maritalStatus', label: '婚姻状況' },
+                { name: 'childrenCount', label: 'お子様の人数' },
+                { name: 'youngestChildBirthYear', label: '末子の生まれ年' },
+                { name: 'phone', label: '電話番号' },
+                { name: 'desiredStartDate', label: '転職希望時期' },
+                { name: 'transferPriority', label: '転職で最も重視すること' }
+            ];
+            
+            // 未入力の必須項目をチェック
+            const missingFields = [];
+            requiredFields.forEach(field => {
+                const value = new FormData(form).get(field.name);
+                if (!value || value.trim() === '') {
+                    missingFields.push(field.label);
+                }
+            });
+            
+            if (missingFields.length > 0) {
+                const message = `以下の必須項目を入力してください:\n\n${missingFields.join('\n')}`;
+                showError(message);
+                return;
+            }
+            
+            goToPage(2); // ローディング表示
+            
+            try {
+                const formData = new FormData(e.target);
+                const data = Object.fromEntries(formData.entries());
+                
+                // kintoneに登録
+                await registerToKintone(data);
+                
+                // 完了ページへ
+                setTimeout(() => {
+                    goToPage(3);
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Registration error:', error);
+                showError('登録中にエラーが発生しました。もう一度お試しください。');
+                goToPage(1);
+            }
+        });
+
+        // ========================================
+        // kintone登録処理
+        // ========================================
+        async function registerToKintone(formData) {
+            // 年齢計算
+            const birthDate = new Date(formData.birthDate);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            
+            const record = {
+                line_user_id: { value: lineProfile.userId },
+                line_display_name: { value: lineProfile.displayName },
+                profile_image_url: { value: lineProfile.pictureUrl || '' },
+                last_name: { value: formData.lastName },
+                first_name: { value: formData.firstName },
+                last_name_kana: { value: formData.lastNameKana || '' },
+                first_name_kana: { value: formData.firstNameKana || '' },
+                birth_date: { value: formData.birthDate },
+                age: { value: age },
+                gender: { value: formData.gender || '' },
+                marital_status: { value: formData.maritalStatus },
+                children_count: { value: formData.childrenCount },
+                youngest_child_birth_year: { value: formData.youngestChildBirthYear },
+                phone: { value: formData.phone },
+                email: { value: formData.email || '' },
+                prefecture: { value: formData.prefecture || '' },
+                desired_start_date: { value: formData.desiredStartDate },
+                transfer_priority: { value: formData.transferPriority },
+                status: { value: '仮登録' },
+                activity_temperature: { value: '高' }
+            };
+            
+            // Vercel Serverless Functionを経由してkintoneに登録
+            const url = '/api/register';
+            
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ record: record })
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Registration failed');
+            }
+            
+            return await response.json();
+        }
+
+        // ========================================
+        // エラー表示
+        // ========================================
+        function showError(message) {
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.textContent = message;
+            errorElement.classList.add('active');
+            
+            setTimeout(() => {
+                errorElement.classList.remove('active');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
