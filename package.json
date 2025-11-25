@@ -1,7 +1,0 @@
-{
-  "name": "mamayoro-liff",
-  "version": "1.0.0",
-  "dependencies": {
-    "googleapis": "^128.0.0"
-  }
-}
