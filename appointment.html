@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>面談予約 - ままよろ人材紹介</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo h1 {
+            color: white;
+            font-size: 2em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .logo p {
+            color: rgba(255,255,255,0.9);
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        
+        h2 {
+            color: #333;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .info-box {
+            background: #f0f7ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 0.9em;
+            color: #555;
+        }
+        
+        .section-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #667eea;
+            margin: 30px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e8ebff;
+        }
+        
+        .date-selector {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .date-option {
+            aspect-ratio: 1;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.85em;
+        }
+        
+        .date-option.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        .date-option.selected {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+        
+        .date-option:not(.disabled):not(.selected):hover {
+            border-color: #667eea;
+            background: #f0f7ff;
+        }
+        
+        .date-day {
+            font-size: 0.7em;
+            opacity: 0.7;
+        }
+        
+        .date-number {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .time-slot {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .time-slot.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        .time-slot.selected {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+        
+        .time-slot:not(.disabled):not(.selected):hover {
+            border-color: #667eea;
+            background: #f0f7ff;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-top: 30px;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .success-message {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .success-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+        
+        .error-message {
+            background: #ffe0e0;
+            border-left: 4px solid #ff6b6b;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .error-message.active {
+            display: block;
+        }
+        
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+        }
+
+        .month-header {
+            text-align: center;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .weekday-header {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 0.75em;
+            color: #999;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>🌸 ままよろ人材紹介</h1>
+            <p>面談予約</p>
+        </div>
+        
+        <div class="card">
+            <div class="error-message" id="errorMessage"></div>
+            
+            <!-- ページ1: 日時選択 -->
+            <div class="page active" id="page1">
+                <h2>面談日時の選択</h2>
+                <div class="info-box">
+                    ご希望の面談日時をお選びください。<br>
+                    面談時間は30分です。
+                </div>
+                
+                <div class="section-title">日付を選択</div>
+                <div id="calendarContainer"></div>
+                
+                <div class="section-title">時間を選択</div>
+                <div class="time-slots" id="timeSlots">
+                    <div class="time-slot disabled">日付を選択してください</div>
+                </div>
+                
+                <button class="btn btn-primary" id="confirmButton" disabled>この日時で予約する</button>
+            </div>
+            
+            <!-- ページ2: ローディング -->
+            <div class="page" id="page2">
+                <div class="loading active">
+                    <div class="spinner"></div>
+                    <p>予約を確定しています...</p>
+                </div>
+            </div>
+            
+            <!-- ページ3: 完了 -->
+            <div class="page" id="page3">
+                <div class="success-message">
+                    <div class="success-icon">✅</div>
+                    <h2>予約完了!</h2>
+                    <p id="confirmationMessage"></p>
+                </div>
+                <button class="btn btn-primary" onclick="handleCloseWindow()">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // 設定情報
+        // ========================================
+        const CONFIG = {
+            LIFF_ID: '2008409890-bdVxpkD0'
+        };
+
+        // ========================================
+        // グローバル変数
+        // ========================================
+        let lineProfile = null;
+        let selectedDate = null;
+        let selectedTime = null;
+        let availableSlots = {};
+
+        // ========================================
+        // LIFF初期化
+        // ========================================
+        window.addEventListener('load', async () => {
+            try {
+                await liff.init({ liffId: CONFIG.LIFF_ID });
+                
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                    return;
+                }
+                
+                // LINEプロフィール取得
+                lineProfile = await liff.getProfile();
+                console.log('LINE Profile:', lineProfile);
+                
+                // URLパラメータからuserIdを取得(登録完了ページから遷移した場合)
+                const urlParams = new URLSearchParams(window.location.search);
+                const userId = urlParams.get('userId');
+                
+                if (userId && userId !== lineProfile.userId) {
+                    showError('ユーザー情報が一致しません');
+                    return;
+                }
+                
+                // カレンダーを初期化
+                await initializeCalendar();
+                
+            } catch (error) {
+                console.error('LIFF initialization failed:', error);
+                showError('初期化に失敗しました');
+            }
+        });
+
+        // ========================================
+        // カレンダー初期化
+        // ========================================
+        async function initializeCalendar() {
+            const container = document.getElementById('calendarContainer');
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // 2週間分の日付を生成
+            const dates = [];
+            for (let i = 0; i < 14; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+                dates.push(date);
+            }
+            
+            // 月ごとにグループ化
+            const monthGroups = {};
+            dates.forEach(date => {
+                const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+                if (!monthGroups[monthKey]) {
+                    monthGroups[monthKey] = [];
+                }
+                monthGroups[monthKey].push(date);
+            });
+            
+            // 各月のカレンダーを作成
+            Object.entries(monthGroups).forEach(([monthKey, monthDates]) => {
+                const firstDate = monthDates[0];
+                const monthDiv = document.createElement('div');
+                monthDiv.style.marginBottom = '30px';
+                
+                // 月のヘッダー
+                const header = document.createElement('div');
+                header.className = 'month-header';
+                header.textContent = `${firstDate.getFullYear()}年${firstDate.getMonth() + 1}月`;
+                monthDiv.appendChild(header);
+                
+                // 曜日ヘッダー
+                const weekdayHeader = document.createElement('div');
+                weekdayHeader.className = 'weekday-header';
+                ['日', '月', '火', '水', '木', '金', '土'].forEach(day => {
+                    const dayDiv = document.createElement('div');
+                    dayDiv.textContent = day;
+                    weekdayHeader.appendChild(dayDiv);
+                });
+                monthDiv.appendChild(weekdayHeader);
+                
+                // 日付グリッド
+                const gridDiv = document.createElement('div');
+                gridDiv.className = 'date-selector';
+                
+                // ⭐ 修正: 表示する最初の日付の曜日に合わせて空白を追加
+                const startDay = firstDate.getDay(); // この月で最初に表示する日の曜日
+                
+                for (let i = 0; i < startDay; i++) {
+                    const emptyDiv = document.createElement('div');
+                    gridDiv.appendChild(emptyDiv);
+                }
+                
+                // 日付を追加
+                monthDates.forEach(date => {
+                    const dateDiv = document.createElement('div');
+                    dateDiv.className = 'date-option';
+                    
+                    const dayOfWeek = date.getDay();
+                    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                    
+                    if (isWeekend) {
+                        dateDiv.classList.add('disabled');
+                    }
+                    
+                    const daySpan = document.createElement('div');
+                    daySpan.className = 'date-day';
+                    daySpan.textContent = ['日', '月', '火', '水', '木', '金', '土'][dayOfWeek];
+                    
+                    const numberSpan = document.createElement('div');
+                    numberSpan.className = 'date-number';
+                    numberSpan.textContent = date.getDate();
+                    
+                    dateDiv.appendChild(daySpan);
+                    dateDiv.appendChild(numberSpan);
+                    
+                    if (!isWeekend) {
+                        dateDiv.addEventListener('click', () => selectDate(date, dateDiv));
+                    }
+                    
+                    gridDiv.appendChild(dateDiv);
+                });
+                
+                monthDiv.appendChild(gridDiv);
+                container.appendChild(monthDiv);
+            });
+        }
+
+        // ========================================
+        // 日付選択
+        // ========================================
+        async function selectDate(date, element) {
+            // 既存の選択を解除
+            document.querySelectorAll('.date-option.selected').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            // 新しい選択を適用
+            element.classList.add('selected');
+            selectedDate = date;
+            selectedTime = null;
+            
+            // 確認ボタンを無効化
+            document.getElementById('confirmButton').disabled = true;
+            
+            // 時間枠を読み込み
+            await loadTimeSlots(date);
+        }
+
+        // ========================================
+        // 時間枠を読み込み
+        // ========================================
+        async function loadTimeSlots(date) {
+            const timeSlotsContainer = document.getElementById('timeSlots');
+            timeSlotsContainer.innerHTML = '<div class="time-slot disabled">読み込み中...</div>';
+            
+            try {
+                // ⭐ 修正: ローカル日付を直接フォーマット
+                const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                const response = await fetch(`/api/get-available-slots?date=${dateStr}`);
+                
+                if (!response.ok) {
+                    throw new Error('空き枠の取得に失敗しました');
+                }
+                
+                const data = await response.json();
+                availableSlots = data.slots || {};
+                
+                timeSlotsContainer.innerHTML = '';
+                
+                if (Object.keys(availableSlots).length === 0) {
+                    timeSlotsContainer.innerHTML = '<div class="time-slot disabled">この日は予約できません</div>';
+                    return;
+                }
+                
+                Object.entries(availableSlots).forEach(([time, isAvailable]) => {
+                    const timeDiv = document.createElement('div');
+                    timeDiv.className = 'time-slot';
+                    timeDiv.textContent = time;
+                    
+                    if (!isAvailable) {
+                        timeDiv.classList.add('disabled');
+                    } else {
+                        timeDiv.addEventListener('click', () => selectTime(time, timeDiv));
+                    }
+                    
+                    timeSlotsContainer.appendChild(timeDiv);
+                });
+                
+            } catch (error) {
+                console.error('Time slots loading error:', error);
+                timeSlotsContainer.innerHTML = '<div class="time-slot disabled">読み込みエラー</div>';
+                showError('空き枠の取得に失敗しました');
+            }
+        }
+
+        // ========================================
+        // 時間選択
+        // ========================================
+        function selectTime(time, element) {
+            // 既存の選択を解除
+            document.querySelectorAll('.time-slot.selected').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            // 新しい選択を適用
+            element.classList.add('selected');
+            selectedTime = time;
+            
+            // 確認ボタンを有効化
+            document.getElementById('confirmButton').disabled = false;
+        }
+
+        // ========================================
+        // 予約確定
+        // ========================================
+        document.getElementById('confirmButton').addEventListener('click', async () => {
+            if (!selectedDate || !selectedTime) {
+                showError('日時を選択してください');
+                return;
+            }
+            
+            goToPage(2); // ローディング表示
+            
+            try {
+                const [startHour, startMinute] = selectedTime.split(':');
+                const startDateTime = new Date(selectedDate);
+                startDateTime.setHours(parseInt(startHour), parseInt(startMinute), 0, 0);
+                
+                const endDateTime = new Date(startDateTime);
+                endDateTime.setMinutes(endDateTime.getMinutes() + 30);
+                
+                // ⭐ 修正: ローカル日付を直接フォーマット（タイムゾーン変換なし）
+                const dateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
+                
+                console.log('予約データ:');
+                console.log('- 選択された日付オブジェクト:', selectedDate);
+                console.log('- フォーマット後の日付文字列:', dateStr);
+                console.log('- 開始時刻:', selectedTime);
+                
+                const response = await fetch('/api/create-appointment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: lineProfile.userId,
+                        date: dateStr, // ✅ "2025-11-07" のような形式
+                        startTime: selectedTime,
+                        endTime: `${String(endDateTime.getHours()).padStart(2, '0')}:${String(endDateTime.getMinutes()).padStart(2, '0')}`
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || '予約に失敗しました');
+                }
+                
+                const result = await response.json();
+                
+                // 完了メッセージを設定
+                const confirmationMessage = document.getElementById('confirmationMessage');
+                const dateStrDisplay = `${selectedDate.getFullYear()}年${selectedDate.getMonth() + 1}月${selectedDate.getDate()}日`;
+                confirmationMessage.innerHTML = `
+                    面談予約が完了しました。<br><br>
+                    <strong>${dateStrDisplay} ${selectedTime}</strong><br><br>
+                    担当者よりLINEでご連絡いたします。
+                `;
+                
+                goToPage(3);
+                
+            } catch (error) {
+                console.error('Appointment creation error:', error);
+                showError(error.message || '予約中にエラーが発生しました');
+                goToPage(1);
+            }
+        });
+
+        // ========================================
+        // ページ遷移
+        // ========================================
+        function goToPage(pageNumber) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(`page${pageNumber}`).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        // ========================================
+        // エラー表示
+        // ========================================
+        function showError(message) {
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.textContent = message;
+            errorElement.classList.add('active');
+            
+            setTimeout(() => {
+                errorElement.classList.remove('active');
+            }, 5000);
+        }
+
+// ========================================
+// 「閉じる」ボタンの処理
+// ========================================
+function handleCloseWindow() {
+    console.log('閉じるボタンがクリックされました');
+    console.log('LIFF isInClient:', liff.isInClient());
+    console.log('LIFF isLoggedIn:', liff.isLoggedIn());
+    
+    if (liff.isInClient()) {
+        console.log('LINEアプリ内で実行: liff.closeWindow()を呼び出します');
+        try {
+            liff.closeWindow();
+            console.log('liff.closeWindow()を実行しました');
+        } catch (error) {
+            console.error('liff.closeWindow()エラー:', error);
+            showCloseMessage();
+        }
+    } else {
+        console.log('外部ブラウザで実行: window.close()を試みます');
+        const closed = window.close();
+        console.log('window.close()の結果:', closed);
+        
+        // window.close()が失敗した場合
+        setTimeout(() => {
+            showCloseMessage();
+        }, 500);
+    }
+}
+
+// ========================================
+// 閉じられなかった場合のメッセージ表示
+// ========================================
+function showCloseMessage() {
+    const message = document.createElement('div');
+    message.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        text-align: center;
+        z-index: 9999;
+        max-width: 80%;
+    `;
+    message.innerHTML = `
+        <p style="font-size: 1.2em; margin-bottom: 15px; font-weight: bold;">予約が完了しました！✅</p>
+        <p style="color: #666; margin-bottom: 20px;">このページを閉じてLINEに戻ってください</p>
+        <button onclick="location.href='https://line.me/R/'" style="
+            background: #06C755;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+        ">LINEを開く</button>
+    `;
+    document.body.appendChild(message);
+}
+    </script>
+</body>
+</html>
