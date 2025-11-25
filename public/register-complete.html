@@ -649,47 +649,26 @@
         // グローバル変数
         let lineProfile = null;
 
-        // LIFF初期化
-        window.addEventListener('load', async () => {
-            try {
-                console.log('LIFF初期化開始...');
-                await liff.init({ liffId: CONFIG.LIFF_ID });
-                console.log('LIFF初期化成功');
-                console.log('isInClient:', liff.isInClient());
-                console.log('isLoggedIn:', liff.isLoggedIn());
+// LIFF初期化
+window.addEventListener('load', async () => {
+    try {
+        console.log('LIFF初期化開始...');
+        await liff.init({ liffId: CONFIG.LIFF_ID });
+        console.log('LIFF初期化成功');
 
-                // ログイン済みかチェック
-                if (liff.isLoggedIn()) {
-                    // ログイン済み - プロフィール取得
-                    lineProfile = await liff.getProfile();
-                    console.log('LINE Profile:', lineProfile);
-                    
-                    // ログイン試行フラグをクリア
-                    sessionStorage.removeItem('liff_login_attempted');
-                } else {
-                    // 未ログイン
-                    console.log('未ログイン');
-                    
-                    // 無限ループ防止: すでにログイン試行済みかチェック
-                    const loginAttempted = sessionStorage.getItem('liff_login_attempted');
-                    
-                    if (loginAttempted) {
-                        // すでにログイン試行済み - ログインボタンを表示
-                        console.log('ログイン試行済み - 手動ログインボタンを表示');
-                        showLoginButton();
-                    } else {
-                        // 初回 - 自動ログイン試行
-                        console.log('初回ログイン試行');
-                        sessionStorage.setItem('liff_login_attempted', 'true');
-                        liff.login({ redirectUri: window.location.href });
-                    }
-                }
+        if (!liff.isLoggedIn()) {
+            console.log('未ログイン、ログインページへ');
+            liff.login();  // ← 引数なしに変更
+            return;
+        }
 
-            } catch (error) {
-                console.error('LIFF initialization failed:', error);
-                showError('初期化に失敗しました。ページを再読み込みしてください。');
-            }
-        });
+        lineProfile = await liff.getProfile();
+        console.log('LINE Profile:', lineProfile);
+
+    } catch (error) {
+        console.error('LIFF initialization failed:', error);
+    }
+});
 
         // 手動ログインボタンを表示
         function showLoginButton() {
